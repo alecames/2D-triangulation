@@ -1,17 +1,16 @@
-# OpenGL Programs Vol. 1
+# OpenGL 2D Triangulation
 
-This repository contains two programs:
+This is a simple demo of OpenGL 2D triangulation given a set of points. This program is written in C++ using OpenGL and GLUT libraries.
 
-* **Kaleidoscope Painter** - A program that draws symmetrical kaleidoscopic patterns with customizable features like color mode, pen size, and saving images.
-  
-* **Animated Screensaver** - A 3D wireframe cube that rotates and changes size and color with customizable features like speed, color change mode, and resetting to default.
+## How to compile
 
-## How to Run
+- Install Visual Studio 
+- Open the solution file `2dtriangulation.sln`
+- Build the solution or hit F5 (Run without debugging) to run 
 
-* Go to the [Releases](https://github.com/alecames/opengl-vol-1/releases) section and download the `kaleidoscope-x.x.zip` or `screensaver-x.x.zip`
-* Extract to folder and run the executable.
+## How to run
 
-## Screen Captures
+- Go to the [Releases](https://github.com/alecames/opengl-vol-1/releases) section and download the `2dtriangulation-x.x.zip` file
+- Extract to folder and run the executable
 
-![Kaleidoscope Demo](images/kaleidoscope-demo.gif)
-![Screensaver Demo](images/screensaver-demo.gif)
+<!-- ## Screen Captures -->

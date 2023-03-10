@@ -1,6 +1,6 @@
 .vs
 *.code-workspace
-*.pdf
+# *.pdf
 *.zip
 *.vcxproj
 *.vcxproj.filters

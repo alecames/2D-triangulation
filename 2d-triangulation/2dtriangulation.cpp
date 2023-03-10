@@ -15,15 +15,31 @@ const int HEIGHT = 800;
 void drawPoints(int points) {
 	glPointSize(4);
 	glBegin(GL_POINTS);
-	for (int i = 0; i < points; i++)
-		glVertex2i(rand() % WIDTH, rand() % HEIGHT);
+	for (int i = 0; i < points; i++) {
+		int x = rand() % WIDTH;
+		int y = rand() % HEIGHT;
+		glVertex2i(x, y);
+	}
 	glEnd();
+}
+
+void init() {
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	// Set dot color to white
+	glColor3f(1.0, 1.0, 1.0);
+	drawPoints(10);	// argument should be some number greater than 3 so that atleast one triangle can be formed
+	// ... unless we don't wanna do that (?)
+
+	glutSwapBuffers();
 }
 
 // prints controls to terminal
 void showcmds() {
 	printf("|-----------------------------------------------------------------------|\n");
-	printf("|                          2D - TRIANGULATION             ESC / Q: Quit |\n");
+	printf("| H: Help                  2D - TRIANGULATION             ESC / Q: Quit |\n");
+	printf("|-----------------------------------------------------------------------|\n");
+	printf("| R: Reset Points |                                                     |\n");
 	printf("|-----------------------------------------------------------------------|\n");
 }
 
@@ -32,38 +48,37 @@ void keyboard(unsigned char key, int x, int y) {
     switch (tolower(key)) {
     // quit with q
     case 'q':
+	case 'Q':
         exit(0);
         break;
 	// quit with esc
 	case 27:
 		exit(0);
-
 		break;
-	case 's':
-		break;
-	case 'c':
-		break;
-	case 'z':
-		break;
-	case 'p':
-		break;
+	// reset display
 	case 'r':
-		
+	case 'R':
+		init();
 		break;
+	// h - help
 	case 'h':
+	case 'H':
 		showcmds();
+		break;
 	}
 }
 
-void display(void) {
-    glClear(GL_COLOR_BUFFER_BIT);
-
-	// Set dot color to white
-	glColor3f(1.0, 1.0, 1.0);
-	drawPoints(5);
-
-    glutSwapBuffers();
-}
+// commenting this out because we might need this later, but I doubt it. 
+//void display(void) {
+//    glClear(GL_COLOR_BUFFER_BIT);
+//
+//	// Set dot color to white
+//	glColor3f(1.0, 1.0, 1.0);
+//	drawPoints(10);	// argument should be some number greater than 3 so that atleast one triangle can be formed
+//					// ... unless we don't wanna do that (?)
+//
+//    glutSwapBuffers();
+//}
 
 int main(int argc, char** argv) {
 	glutInit(&argc, argv);
@@ -79,12 +94,15 @@ int main(int argc, char** argv) {
 	glLoadIdentity();
 	gluOrtho2D(0, WIDTH, 0, HEIGHT);	// creates drawable projection
 
-	// print controls
+	// show print controls
 	showcmds();
 
-	// flut functions
-    glutDisplayFunc(display);
+	// glut functions
+    //glutDisplayFunc(display);
     glutKeyboardFunc(keyboard);
+
+	init();		// initialize all the points to be rendered 
+	glutSetCursor(GLUT_CURSOR_NONE);	// makes mouse cursor disappear on glut window
 
     glutMainLoop();
     return 0;

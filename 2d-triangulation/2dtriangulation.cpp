@@ -13,7 +13,7 @@
 // This program will preform 2D triangulation on a set of points
 
 // Alec Ames 68643577
-// Julian Geronimo 
+// Julian Geronimo 6756597
 // COSC 3P98 - Computer Graphics - Assignment 2
 
 const int WIDTH = 800;
@@ -38,7 +38,7 @@ struct Triangle {
 };
 
 std::vector<Point> P(POINT_COUNT);
-std::vector<Edge> EdgeList(POINT_COUNT * 2);
+std::vector<Edge> EdgeList(POINT_COUNT*(POINT_COUNT-1) / 2);
 std::vector<Triangle> Triangles;
 
 void initPoints() {
@@ -93,6 +93,10 @@ void calcEdges() {
 		EdgeList[numEdges++] = e2;
 		printf("Edge #%i\tfrom (%i,%i) to (%i,%i)\tlength: %i\n", i, EdgeList[i].p1.x, EdgeList[i].p1.y, EdgeList[i].p2.x, EdgeList[i].p2.y, EdgeList[i].length);
 	}
+}
+
+void calcEdges2() {
+	
 }
 
 void drawEdges() {

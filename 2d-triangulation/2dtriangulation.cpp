@@ -128,12 +128,14 @@ void drawEdges() {
 
 // c) render the triangles as solid polygons
 void drawTriangles() {
-	glColor3f(0.3, 0.72, 0.56);
 	glLineWidth(2.0f);
 	glBegin(GL_TRIANGLES);
 	for (Triangle& t : Triangles) {
+		glColor3f(0.3, 0.72, 0.56);
 		glVertex2i(t.p1.x, t.p1.y);
+		glColor3f(0.58, 0.86, 0.5);
 		glVertex2i(t.p2.x, t.p2.y);
+		glColor3f(0.38, 0.55, 0.86);
 		glVertex2i(t.p3.x, t.p3.y);
 	}
 	glEnd();
@@ -186,7 +188,7 @@ void keyboard(unsigned char key, int x, int y) {
 	case 'h': // h - help
 		showcmds();
 		break;
-	case 't':
+	case 't':		
 		break;
 	}
 }

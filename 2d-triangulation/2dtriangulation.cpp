@@ -220,10 +220,11 @@ void calcEdges() {
 	// (FILTER) Find all edges with intersections and disregard them when inserting edges into TriList.
 	// This loop will compare every combination of edges and determine which ones have intersections with each other. 
 
-	bool intersection = false;
+	bool intersection;
 
 	// get Line segments L1 and L2
 	for (int i = 0; i < numEdges; i++) {
+		intersection = false;
 		for (int j = i + 1; j < numEdges; j++) {
 			Edge L1 = EdgeList[i];
 			Edge L2 = EdgeList[j];
@@ -265,15 +266,31 @@ void calcEdges() {
 				}
 				// L2 is vertical
 				else {
-					
-				}
+                	// In this case, xc and xd are both the same value, so (xc-xd) = 0
+                	// we can use tb = (yc - ya + (yd - yc) * ta) / (xb - xa) to find tb
+                	if (xb - xa != 0) {
+                    	int ta = (xc - xa) / (xb - xa);
+                    	int tb = (yc - ya + (yd - yc) * ta) / (xb - xa);
 
+						// find intersection points
+						if (0 <= ta <= 1 && 0 <= tb <= 1) {
+							int intersectX = xa + ta * (xb - xa);
+							int intersectY = ya + ta * (yb - ya);
+							// printf("Intersection at [%i, %i]\n", intersectX, intersectY);
+							intersection = true;
+							break;
+						}
+                	}
+            	}
 			}
 		}
 		if(!intersection) {
 			TriEdge.insert(EdgeList[i]);
 		}
 	}
+
+	
+
 }
 
 

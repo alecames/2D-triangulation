@@ -85,12 +85,12 @@ void calcEdges() {
 			int dx = P[j].x - P[i].x;
 			int dy = P[j].y - P[i].y;
 			unsigned int length = sqrt((dx * dx) + (dy * dy));
-			
+
 			// printf("Edge #%i from i = P[%i] to j = P[%i]\tlength: %i\n", numEdges, i, j, length);
 
-			// save the triangles in a data structure
+			// b) save the triangles in a data structure
 			Edge e = { P[i], P[j], length };
-			EdgeList[numEdges] = e;		// load all possible edges into EdgeList array
+			EdgeList[numEdges] = e;
 			numEdges++;
 		}
 	}
@@ -103,16 +103,11 @@ void calcEdges() {
 		return a.length < b.length;
 		});
 
-	// this part will be used for printing all the lengths 
-	for (Edge& e : EdgeList) {
-		printf("length: %i\n", e.length);
-	}
-
 	// (FILTER) Find all edges with intersections and disregard them when inserting edges into TriList.
 	// This loop will compare every combination of edges and determine which ones have intersections with each other. 
 	// get L1 and L2
 	for (int i = 0; i < numEdges; i++) {
-		for (int j = i+1; j < numEdges; j++) {
+		for (int j = i + 1; j < numEdges; j++) {
 			// L1
 			Point L1 = EdgeList[i].p1;
 

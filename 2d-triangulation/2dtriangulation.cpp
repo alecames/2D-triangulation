@@ -108,6 +108,23 @@ void drawEdges() {
 	glutSwapBuffers();
 }
 
+// menu
+void menu(int id) {
+	switch (id) {
+	case 1:
+		initPoints();
+		drawPoints();
+		break;
+	case 2:
+		calcEdges();
+		drawEdges();
+		break;
+	case 3:
+		exit(0);
+		break;
+	}
+}
+
 // prints controls to terminal
 void showcmds() {
 	printf("|-----------------------------------------------------------------------|\n");
@@ -169,6 +186,12 @@ int main(int argc, char** argv) {
 	glutInitWindowSize(WIDTH, HEIGHT);
 	glutInitWindowPosition((glutGet(GLUT_SCREEN_WIDTH) - WIDTH) / 2, (glutGet(GLUT_SCREEN_HEIGHT) - HEIGHT) / 2); // makes the window appear in the center of the screen
 	glutCreateWindow("2D Triangulation");
+
+	glutCreateMenu(menu);
+	glutAddMenuEntry("Reset Points", 1);
+	glutAddMenuEntry("Draw Edges", 2);
+	glutAddMenuEntry("Quit", 3);
+	glutAttachMenu(GLUT_RIGHT_BUTTON);
 
 	// initialize
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);

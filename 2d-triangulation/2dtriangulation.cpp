@@ -14,7 +14,7 @@
 // Immutable
 const int WIDTH = 800;
 const int HEIGHT = 800;
-const int POINT_SIZE = 6;
+const int POINT_RADIUS = 6;
 const int NPOINTS = 4;		// "n-points", hardcoded for now, maybe we can ask the user how many they want; -/+ an amount.
 
 struct Point {
@@ -98,10 +98,9 @@ void showcmds() {
 
 // handles keyboard events
 void keyboard(unsigned char key, int x, int y) {
-    switch (tolower(key)) {
+    switch (tolower(key)) { // convert to lowercase
     // quit with q
     case 'q':
-	case 'Q':
         exit(0);
         break;
 	// quit with esc
@@ -110,16 +109,13 @@ void keyboard(unsigned char key, int x, int y) {
 		break;
 	// reset display
 	case 'r':
-	case 'R':
 		drawPoints();
 		break;
 	case 'd':
-	case 'D':
 		initEdges();
 		break;
 	// h - help
 	case 'h':
-	case 'H':
 		showcmds();
 		break;
 	}

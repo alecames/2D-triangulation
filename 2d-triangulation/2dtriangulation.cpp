@@ -38,7 +38,7 @@ struct Triangle {
 };
 
 std::vector<Point> P(POINT_COUNT);
-std::vector<Edge> EdgeList(POINT_COUNT*(POINT_COUNT-1) / 2);
+std::vector<Edge> EdgeList(POINT_COUNT* (POINT_COUNT - 1) / 2);
 std::vector<Triangle> Triangles;
 
 
@@ -53,7 +53,7 @@ void padprint(const char* str) {
 	printf("|\n");
 }
 
-
+// a) generate N random unique points on the plane
 void initPoints() {
 	for (int i = 0; i < POINT_COUNT; i++) {
 		P[i].x = rand() % WIDTH;
@@ -61,10 +61,9 @@ void initPoints() {
 	}
 }
 
-// calculates the edges between the points
+// a) render these points
 void drawPoints() {
 	glClear(GL_COLOR_BUFFER_BIT);
-	// render the points
 	glColor3f(0.0, 1.0, 0.0);
 	glPointSize(POINT_RADIUS);
 	glBegin(GL_POINTS);
@@ -75,40 +74,47 @@ void drawPoints() {
 	glutSwapBuffers();
 }
 
+// b) naive triangulation algorithm
 void calcEdges() {
 	// calculate length, save to edge list;
 	int numEdges = 0;
 
 	for (int i = 0; i < POINT_COUNT; i++) {
-		for (int j = i+1; j < POINT_COUNT; j++) {
+		for (int j = i + 1; j < POINT_COUNT; j++) {
 			// calculate the distance between the two points
 			int dx = P[j].x - P[i].x;
 			int dy = P[j].y - P[i].y;
 			unsigned int length = sqrt((dx * dx) + (dy * dy));
+			
 			// printf("Edge #%i from i = P[%i] to j = P[%i]\tlength: %i\n", numEdges, i, j, length);
-			Edge e = {P[i], P[j], length};
+
+			// save the triangles in a data structure
+			Edge e = { P[i], P[j], length };
 			EdgeList[numEdges] = e;		// load all possible edges into EdgeList array
 			numEdges++;
 		}
 	}
 
+	// b) count and print the number of edges created
 	printf("Edges: %i\n", numEdges);
-	
+
 	// sort edge vector in order of least-greatest edge length (takes nlogn time)
 	std::sort(EdgeList.begin(), EdgeList.end(), [](const Edge& a, const Edge& b) {
 		return a.length < b.length;
-	});
-
-	// this part will be used for printing all the lengths 
-	for (Edge& e : EdgeList) {
-		printf("length: %i\n", e.length);
-	}
+		});
 
 	// (FILTER) Find all edges with intersections and disregard them when inserting edges into TriList
 }
 
+// c) triangle polygon extaction - extract triangle polygons from the edges
+void extractTriangles() {
+
+	// c) count and print the number of triangles created
+
+}
+
+// b) render the edges
 void drawEdges() {
-	// render the edges
 	glColor3f(0.3, 0.72, 0.56);
 	glLineWidth(2.0f);
 	glBegin(GL_LINES);
@@ -118,7 +124,20 @@ void drawEdges() {
 	}
 	glEnd();
 	glutSwapBuffers();
-	
+}
+
+// c) render the triangles as solid polygons
+void drawTriangles() {
+	glColor3f(0.3, 0.72, 0.56);
+	glLineWidth(2.0f);
+	glBegin(GL_TRIANGLES);
+	for (Triangle& t : Triangles) {
+		glVertex2i(t.p1.x, t.p1.y);
+		glVertex2i(t.p2.x, t.p2.y);
+		glVertex2i(t.p3.x, t.p3.y);
+	}
+	glEnd();
+	glutSwapBuffers();
 }
 
 // menu
@@ -168,7 +187,6 @@ void keyboard(unsigned char key, int x, int y) {
 		showcmds();
 		break;
 	case 't':
-		calcEdges2();
 		break;
 	}
 }

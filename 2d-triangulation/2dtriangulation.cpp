@@ -63,39 +63,39 @@ void drawPoints() {
 }
 
 // // calculates the edges between the points
-// void calcEdges() {
-// 	int numEdges = 0;
-// 	for (int i = 0; i < POINT_COUNT; i++) {
-// 		int nearest1 = -1;
-// 		int nearest2 = -1;
-// 		int shortestLen1 = 999999;
-// 		int shortestLen2 = 999999;
-// 		for (int j = 0; j < POINT_COUNT; j++) {
-// 			if (i != j) {
-// 				int dx = P[j].x - P[i].x;
-// 				int dy = P[j].y - P[i].y;
-// 				int dist = dx * dx + dy * dy;
-// 				if (dist < shortestLen1) {
-// 					shortestLen2 = shortestLen1;
-// 					nearest2 = nearest1;
-// 					shortestLen1 = dist;
-// 					nearest1 = j;
-// 				}
-// 				else if (dist < shortestLen2) {
-// 					shortestLen2 = dist;
-// 					nearest2 = j;
-// 				}
-// 			}
-// 		}
-// 		Edge e1 = { P[i], P[nearest1], std::sqrt(shortestLen1) };
-// 		EdgeList[numEdges++] = e1;
-// 		Edge e2 = { P[i], P[nearest2], std::sqrt(shortestLen2) };
-// 		EdgeList[numEdges++] = e2;
-// 		printf("Edge #%i\tfrom (%i,%i) to (%i,%i)\tlength: %i\n", i, EdgeList[i].p1.x, EdgeList[i].p1.y, EdgeList[i].p2.x, EdgeList[i].p2.y, EdgeList[i].length);
-// 	}
-// }
+ void calcEdges() {
+ 	int numEdges = 0;
+ 	for (int i = 0; i < POINT_COUNT; i++) {
+ 		int nearest1 = -1;
+ 		int nearest2 = -1;
+ 		int shortestLen1 = 999999;
+ 		int shortestLen2 = 999999;
+ 		for (int j = 0; j < POINT_COUNT; j++) {
+ 			if (i != j) {
+ 				int dx = P[j].x - P[i].x;
+ 				int dy = P[j].y - P[i].y;
+ 				int dist = dx * dx + dy * dy;
+ 				if (dist < shortestLen1) {
+ 					shortestLen2 = shortestLen1;
+ 					nearest2 = nearest1;
+ 					shortestLen1 = dist;
+ 					nearest1 = j;
+ 				}
+ 				else if (dist < shortestLen2) {
+ 					shortestLen2 = dist;
+ 					nearest2 = j;
+ 				}
+ 			}
+ 		}
+ 		Edge e1 = { P[i], P[nearest1], std::sqrt(shortestLen1) };
+ 		EdgeList[numEdges++] = e1;
+ 		Edge e2 = { P[i], P[nearest2], std::sqrt(shortestLen2) };
+ 		EdgeList[numEdges++] = e2;
+ 		printf("Edge #%i\tfrom (%i,%i) to (%i,%i)\tlength: %i\n", i, EdgeList[i].p1.x, EdgeList[i].p1.y, EdgeList[i].p2.x, EdgeList[i].p2.y, EdgeList[i].length);
+ 	}
+ }
 
-void calcEdges() {
+void calcEdges2() {
 	// calculate length, save to edge list;
 	int numEdges = 0;
 	//printf("numEdges: %i\n\n", numEdges);
@@ -109,7 +109,7 @@ void calcEdges() {
 			//printf("Edge #%i\tfrom i = P[%i] to j = P[%i]\tlength: %i\n", numEdges, i, j, length);
 
 			Edge e = {P[i], P[j], length};
-			EdgeList[numEdges] = e;
+			EdgeList[numEdges] = e;		// load all possible edges into EdgeList array
 			numEdges++;
 		}
 	}
@@ -123,10 +123,8 @@ void calcEdges() {
 	for (Edge& e : EdgeList) {
 		printf("length: %i\n", e.length);
 	}
-}
 
-void calcEdges2() {
-	
+	// (FILTER) Find all edges with intersections and disregard them when inserting edges into TriList
 }
 
 void drawEdges() {
@@ -198,6 +196,9 @@ void keyboard(unsigned char key, int x, int y) {
 		break;
 	case 'h': // h - help
 		showcmds();
+		break;
+	case 't':
+		calcEdges2();
 		break;
 	}
 }

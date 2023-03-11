@@ -9,6 +9,7 @@
 #include <ctime>
 #include <vector>
 #include <algorithm>
+#include <set>
 
 // This program will preform 2D triangulation on a set of points
 
@@ -22,13 +23,17 @@ const float POINT_RADIUS = 6.0f;
 const int POINT_COUNT = 10; // "n-points", hardcoded for now, maybe we can ask the user how many they want; -/+ an amount.
 
 struct Point {
-	float x, y;
+	int x, y;
+	bool operator==(const Point& other) const { return x == other.x && y == other.y; }
 };
 
 struct Edge {
 	Point p1;
 	Point p2;
 	unsigned int length;
+	bool operator<(const Edge& other) const { return length < other.length; }
+	bool operator>(const Edge& other) const { return length > other.length; }
+	bool operator==(const Edge& other) const { return p1 == other.p1 && p2 == other.p2; }
 };
 
 struct Triangle {
@@ -40,7 +45,6 @@ struct Triangle {
 std::vector<Point> P(POINT_COUNT);
 std::vector<Edge> EdgeList(POINT_COUNT* (POINT_COUNT - 1) / 2);
 std::vector<Triangle> Triangles;
-
 
 // formats the prints with the table edges
 void padprint(const char* str) {
@@ -64,7 +68,7 @@ void initPoints() {
 // a) render these points
 void drawPoints() {
 	glClear(GL_COLOR_BUFFER_BIT);
-	glColor3f(0.0, 1.0, 0.0);
+	glColor3f(1, 1, 1);
 	glPointSize(POINT_RADIUS);
 	glBegin(GL_POINTS);
 	for (Point& p : P) {
@@ -99,9 +103,7 @@ void calcEdges() {
 	printf("Edges: %i\n", numEdges);
 
 	// sort edge vector in order of least-greatest edge length (takes nlogn time)
-	std::sort(EdgeList.begin(), EdgeList.end(), [](const Edge& a, const Edge& b) {
-		return a.length < b.length;
-		});
+	std::sort(EdgeList.begin(), EdgeList.end());
 
 	// (FILTER) Find all edges with intersections and disregard them when inserting edges into TriList.
 	// This loop will compare every combination of edges and determine which ones have intersections with each other. 
@@ -110,6 +112,7 @@ void calcEdges() {
 		for (int j = i + 1; j < numEdges; j++) {
 			// L1
 			Point L1 = EdgeList[i].p1;
+
 
 			// L2
 			Point L2 = EdgeList[j].p1;
@@ -121,7 +124,6 @@ void calcEdges() {
 void extractTriangles() {
 
 	// c) count and print the number of triangles created
-
 }
 
 // b) render the edges
@@ -140,13 +142,11 @@ void drawEdges() {
 // c) render the triangles as solid polygons
 void drawTriangles() {
 	glLineWidth(2.0f);
+	glColor3f(0.3, 0.72, 0.56);
 	glBegin(GL_TRIANGLES);
 	for (Triangle& t : Triangles) {
-		glColor3f(0.3, 0.72, 0.56);
 		glVertex2i(t.p1.x, t.p1.y);
-		glColor3f(0.58, 0.86, 0.5);
 		glVertex2i(t.p2.x, t.p2.y);
-		glColor3f(0.38, 0.55, 0.86);
 		glVertex2i(t.p3.x, t.p3.y);
 	}
 	glEnd();
@@ -200,6 +200,8 @@ void keyboard(unsigned char key, int x, int y) {
 		showcmds();
 		break;
 	case 't':
+		extractTriangles();
+		drawTriangles();
 		break;
 	}
 }

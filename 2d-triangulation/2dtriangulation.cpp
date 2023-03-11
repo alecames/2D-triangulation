@@ -41,6 +41,19 @@ std::vector<Point> P(POINT_COUNT);
 std::vector<Edge> EdgeList(POINT_COUNT*(POINT_COUNT-1) / 2);
 std::vector<Triangle> Triangles;
 
+
+// formats the prints with the table edges
+void padprint(const char* str) {
+	int len = strlen(str);
+	int pad = 70 - len;
+	printf("| ");
+	printf("%s", str);
+	for (int i = 0; i < pad; i++)
+		printf(" ");
+	printf("|\n");
+}
+
+
 void initPoints() {
 	for (int i = 0; i < POINT_COUNT; i++) {
 		P[i].x = rand() % WIDTH;
@@ -62,43 +75,9 @@ void drawPoints() {
 	glutSwapBuffers();
 }
 
-// // calculates the edges between the points
-// void calcEdges() {
-// 	int numEdges = 0;
-// 	for (int i = 0; i < POINT_COUNT; i++) {
-// 		int nearest1 = -1;
-// 		int nearest2 = -1;
-// 		int shortestLen1 = 999999;
-// 		int shortestLen2 = 999999;
-// 		for (int j = 0; j < POINT_COUNT; j++) {
-// 			if (i != j) {
-// 				int dx = P[j].x - P[i].x;
-// 				int dy = P[j].y - P[i].y;
-// 				int dist = dx * dx + dy * dy;
-// 				if (dist < shortestLen1) {
-// 					shortestLen2 = shortestLen1;
-// 					nearest2 = nearest1;
-// 					shortestLen1 = dist;
-// 					nearest1 = j;
-// 				}
-// 				else if (dist < shortestLen2) {
-// 					shortestLen2 = dist;
-// 					nearest2 = j;
-// 				}
-// 			}
-// 		}
-// 		Edge e1 = { P[i], P[nearest1], std::sqrt(shortestLen1) };
-// 		EdgeList[numEdges++] = e1;
-// 		Edge e2 = { P[i], P[nearest2], std::sqrt(shortestLen2) };
-// 		EdgeList[numEdges++] = e2;
-// 		printf("Edge #%i\tfrom (%i,%i) to (%i,%i)\tlength: %i\n", i, EdgeList[i].p1.x, EdgeList[i].p1.y, EdgeList[i].p2.x, EdgeList[i].p2.y, EdgeList[i].length);
-// 	}
-// }
-
 void calcEdges() {
 	// calculate length, save to edge list;
 	int numEdges = 0;
-	//printf("numEdges: %i\n\n", numEdges);
 
 	for (int i = 0; i < POINT_COUNT; i++) {
 		for (int j = i+1; j < POINT_COUNT; j++) {
@@ -106,27 +85,19 @@ void calcEdges() {
 			int dx = P[j].x - P[i].x;
 			int dy = P[j].y - P[i].y;
 			unsigned int length = sqrt((dx * dx) + (dy * dy));
-			//printf("Edge #%i\tfrom i = P[%i] to j = P[%i]\tlength: %i\n", numEdges, i, j, length);
-
+			// printf("Edge #%i from i = P[%i] to j = P[%i]\tlength: %i\n", numEdges, i, j, length);
 			Edge e = {P[i], P[j], length};
 			EdgeList[numEdges] = e;
 			numEdges++;
 		}
 	}
 
+	printf("Edges: %i\n", numEdges);
+	
 	// sort edge vector in order of least-greatest edge length (takes nlogn time)
 	std::sort(EdgeList.begin(), EdgeList.end(), [](const Edge& a, const Edge& b) {
 		return a.length < b.length;
-	});
-
-	// this part will be used for printing all the lengths 
-	for (Edge& e : EdgeList) {
-		printf("length: %i\n", e.length);
-	}
-}
-
-void calcEdges2() {
-	
+		});
 }
 
 void drawEdges() {
@@ -140,6 +111,7 @@ void drawEdges() {
 	}
 	glEnd();
 	glutSwapBuffers();
+	
 }
 
 // menu
@@ -166,17 +138,6 @@ void showcmds() {
 	printf("|-----------------------------------------------------------------------|\n");
 	printf("| R: Reset Points                                         D: Draw Edges |\n");
 	printf("|-----------------------------------------------------------------------|\n");
-}
-
-// formats the prints with the table edges
-void padprint(const char* str) {
-	int len = strlen(str);
-	int pad = 70 - len;
-	printf("| ");
-	printf("%s", str);
-	for (int i = 0; i < pad; i++)
-		printf(" ");
-	printf("|\n");
 }
 
 // handles keyboard events

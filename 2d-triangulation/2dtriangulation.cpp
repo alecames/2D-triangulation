@@ -11,7 +11,8 @@
 
 // This program will preform 2D triangulation on a set of points
 // Alec Ames 68643577
-// Julian Geronimo TODO: add ID
+// Julian Geronimo 
+// COSC 3P98 - Computer Graphics - Assignment 2
 
 // Immutable
 const int WIDTH = 800;
@@ -37,8 +38,7 @@ void initPoints() {
 	int x = rand() % WIDTH;
 	int y = rand() % HEIGHT;
 
-	for (Point& p : P)
-	{
+	for (Point& p : P) {
 		p.x = rand() % WIDTH;  // coordinate on width side
 		p.y = rand() % HEIGHT; // coordinate on height side
 	}
@@ -50,10 +50,8 @@ void calcEdges() {
 	// calculate length, save to edge list;
 	int numEdges = 0;
 
-	for (int i = 0; i < POINT_COUNT; i++)
-	{
-		for (int j = i + 1; j < POINT_COUNT; j++)
-		{
+	for (int i = 0; i < POINT_COUNT; i++) {
+		for (int j = i + 1; j < POINT_COUNT; j++) {
 			// calculate the distance between the two points
 			int dx = P[j].x - P[i].x;
 			int dy = P[j].y - P[i].y;
@@ -83,8 +81,7 @@ void drawPoints() {
 	glPointSize(POINT_RADIUS);
 	glBegin(GL_POINTS);
 
-	for (Point& p : P)
-	{
+	for (Point& p : P) {
 		glVertex2i(p.x, p.y);
 	}
 	glEnd();
@@ -98,8 +95,7 @@ void drawEdges() {
 	glLineWidth(2.0f);
 	glBegin(GL_LINES);
 
-	for (Edge& e : Edge_List)
-	{
+	for (Edge& e : Edge_List) {
 		glVertex2i(e.p1.x, e.p1.y);
 		glVertex2i(e.p2.x, e.p2.y);
 	}

@@ -39,6 +39,7 @@ struct Triangle {
 
 std::vector<Point> P(POINT_COUNT);
 std::vector<Edge> EdgeList(POINT_COUNT*(POINT_COUNT-1) / 2);
+std::vector<Edge> TriList();
 std::vector<Triangle> Triangles;
 
 
@@ -104,7 +105,18 @@ void calcEdges() {
 		printf("length: %i\n", e.length);
 	}
 
-	// (FILTER) Find all edges with intersections and disregard them when inserting edges into TriList
+	// (FILTER) Find all edges with intersections and disregard them when inserting edges into TriList.
+	// This loop will compare every combination of edges and determine which ones have intersections with each other. 
+	// get L1 and L2
+	for (int i = 0; i < numEdges; i++) {
+		for (int j = i+1; j < numEdges; j++) {
+			// L1
+			Point L1 = EdgeList[i].p1;
+
+			// L2
+			Point L2 = EdgeList[j].p1;
+		}
+	}
 }
 
 void drawEdges() {
@@ -168,7 +180,6 @@ void keyboard(unsigned char key, int x, int y) {
 		showcmds();
 		break;
 	case 't':
-		calcEdges2();
 		break;
 	}
 }

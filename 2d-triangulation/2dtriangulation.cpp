@@ -1,5 +1,4 @@
 #include <freeglut.h>
-#include <FreeImage.h>
 #include <string>
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,8 +21,7 @@ const int HEIGHT = 800;
 const float POINT_RADIUS = 6.0f;
 const int POINT_COUNT = 4; // "n-points", hardcoded for now, maybe we can ask the user how many they want; -/+ an amount.
 
-struct Point
-{
+struct Point {
 	int x, y;
 	bool operator==(const Point &other) const { return x == other.x && y == other.y; }
 	bool operator!=(const Point &other) const { return x != other.x || y != other.y; }
@@ -31,8 +29,7 @@ struct Point
 	bool operator>(const Point &other) const { return x > other.x || (x == other.x && y > other.y); }
 };
 
-struct Edge
-{
+struct Edge {
 	Point p1;
 	Point p2;
 	unsigned int length;
@@ -40,8 +37,7 @@ struct Edge
 	bool operator>(const Edge &other) const { return length > other.length; }
 	bool operator==(const Edge &other) const { return p1 == other.p1 && p2 == other.p2; }
 	float slope() const { return (float)(p2.y - p1.y) / (float)(p2.x - p1.x); }
-	bool intersects(Edge &other)
-	{
+	bool intersects(Edge &other)	{
 		// check if the two lines are parallel
 		if (slope() == other.slope())
 			return false;
@@ -71,8 +67,7 @@ struct Edge
 		return true;
 	}
 
-	Point intersection(const Edge &other) const
-	{
+	Point intersection(const Edge &other) const {
 		// check if the two lines are parallel
 		if (slope() == other.slope())
 			return Point{-1, -1};
@@ -113,8 +108,7 @@ struct Triangle
 	bool operator<(const Triangle &other) const { return p1 < other.p1 || (p1 == other.p1 && p2 < other.p2) || (p1 == other.p1 && p2 == other.p2 && p3 < other.p3); }
 	bool operator>(const Triangle &other) const { return p1 > other.p1 || (p1 == other.p1 && p2 > other.p2) || (p1 == other.p1 && p2 == other.p2 && p3 > other.p3); }
 	// check if the triangle contains the point
-	bool contains(const Point &p) const
-	{
+	bool contains(const Point &p) const {
 		// check if the point is on the same side of the line as the other two points
 		Edge e1{p1, p2};
 		Edge e2{p2, p3};
@@ -137,8 +131,7 @@ struct Triangle
 		return true;
 	}
 
-	bool intersects(const Triangle &other) const
-	{
+	bool intersects(const Triangle &other) const {
 		// check if the two triangles share an edge
 		Edge e1{p1, p2};
 		Edge e2{p2, p3};
@@ -165,8 +158,7 @@ std::set<Edge> TriEdge;
 std::vector<Triangle> Triangles(999);
 
 // formats the prints with the table edges
-void padprint(const char *str)
-{
+void padprint(const char *str) {
 	int len = strlen(str);
 	int pad = 70 - len;
 	printf("| ");
@@ -177,24 +169,20 @@ void padprint(const char *str)
 }
 
 // a) generate N random unique points on the plane
-void initPoints()
-{
-	for (int i = 0; i < POINT_COUNT; i++)
-	{
+void initPoints() {
+	for (int i = 0; i < POINT_COUNT; i++) {
 		P[i].x = rand() % WIDTH;
 		P[i].y = rand() % HEIGHT;
 	}
 }
 
 // a) render these points
-void drawPoints()
-{
+void drawPoints() {
 	glClear(GL_COLOR_BUFFER_BIT);
 	glColor3f(1, 1, 1);
 	glPointSize(POINT_RADIUS);
 	glBegin(GL_POINTS);
-	for (Point &p : P)
-	{
+	for (Point &p : P) {
 		glVertex2i(p.x, p.y);
 	}
 	glEnd();
@@ -202,16 +190,13 @@ void drawPoints()
 }
 
 // b) naive triangulation algorithm
-void calcEdges()
-{
+void calcEdges() {
 	// calculate length, save to edge list;
 	int numEdges = 0;
 
 	// finding ALL possible edges
-	for (int i = 0; i < POINT_COUNT; i++)
-	{
-		for (int j = i + 1; j < POINT_COUNT; j++)
-		{
+	for (int i = 0; i < POINT_COUNT; i++)	{
+		for (int j = i + 1; j < POINT_COUNT; j++) {
 			// calculate the distance between the two points
 			// Point 1
 			int x0 = P[i].x;
@@ -242,14 +227,12 @@ void calcEdges()
 	bool intersection;
 	TriEdge.clear();
 
-	for (int i = 0; i < numEdges; i++)
-	{
+	for (int i = 0; i < numEdges; i++)	{
 		Edge L1 = EdgeList[i];
 		intersection = false; // initially assume edge encounters no intersections
 
 		// compare L1 with each L2 in Tri Edge
-		for (Edge L2 : TriEdge)
-		{
+		for (Edge L2 : TriEdge) {
 			if (&L1 && &L2)
 				continue;
 
@@ -271,34 +254,29 @@ void calcEdges()
 
 			int D = (xb - xa) * (yd - yc) - (yb - ya) * (xd - xc);
 
-			if (D != 0)
-			{
+			if (D != 0) {
 				printf("D != 0\n");
 				int ta;
 				int tb;
 
 				// (i) L2 is not vertical
-				if ((xd - xc) != 0)
-				{
+				if ((xd - xc) != 0) {
 					printf("not vertical\n");
 					ta = ((xc - xa) * (yd - yc) - (yc - ya) * (xd - xc)) / D;
 					tb = (xa - xc + (xb - xa) * ta) / (xd - xc);
 
-					if ((ta >= 0 && ta <= 1) && (tb >= 0 && tb <= 1))
-					{
+					if ((ta >= 0 && ta <= 1) && (tb >= 0 && tb <= 1)) {
 						intersection = true;
 						break;
 					}
 				}
 				// (ii) L2 is vertical
-				else if ((xd - xc) == 0)
-				{
+				else if ((xd - xc) == 0) {
 					printf("is vertical\n");
 					ta = (xc - xa) / (xb - xa);
 					tb = (ya + ta * (yb - ya) - yc) / (yd - yc);
 
-					if (ta >= 0 && ta <= 1 && tb >= 0 && tb <= 1)
-					{
+					if (ta >= 0 && ta <= 1 && tb >= 0 && tb <= 1) {
 						intersection = true;
 						break;
 					}
@@ -307,8 +285,7 @@ void calcEdges()
 			//	in D == 0, they might overlap, but we'll not need to deal with this
 		} // for-each
 
-		if (!intersection)
-		{ // if there is no intersection, then we can add it to TriEdge
+		if (!intersection) { // if there is no intersection, then we can add it to TriEdge
 			TriEdge.insert(L1);
 		}
 
@@ -318,32 +295,26 @@ void calcEdges()
 	printf("TriEdges: %i\n", TriEdge.size());
 
 	printf("Tri-Length: ");
-	for (Edge e : TriEdge)
-	{
+	for (Edge e : TriEdge)	{
 		printf("%i ", e.length);
 	}
 	printf("\n");
 }
 
 // c) triangle polygon extaction - extract triangle polygons from the edges
-void extractTriangles()
-{
+void extractTriangles() {
 	std::set<Edge> edgeSet(EdgeList.begin(), EdgeList.end());
 
 	int numTriangles = 0;
 
-	for (auto it = edgeSet.begin(); it != edgeSet.end(); ++it)
-	{
+	for (auto it = edgeSet.begin(); it != edgeSet.end(); ++it)	{
 		Edge e1 = *it;
 		auto jt = it;
-		for (++jt; jt != edgeSet.end(); ++jt)
-		{
+		for (++jt; jt != edgeSet.end(); ++jt) {
 			Edge e2 = *jt;
-			if (e1.intersects(e2))
-			{
+			if (e1.intersects(e2)) {
 				Point p = e1.intersection(e2);
-				if (p != e1.p1 && p != e1.p2 && p != e2.p1 && p != e2.p2)
-				{
+				if (p != e1.p1 && p != e1.p2 && p != e2.p1 && p != e2.p2) {
 					Triangle t = {e1.p1, e1.p2, p};
 					Triangles[numTriangles] = t;
 					numTriangles++;
@@ -362,13 +333,11 @@ void extractTriangles()
 }
 
 // b) render the edges
-void drawEdges()
-{
+void drawEdges() {
 	glColor3f(0.3, 0.72, 0.56);
 	glLineWidth(2.0f);
 	glBegin(GL_LINES);
-	for (Edge &e : EdgeList)
-	{
+	for (Edge &e : EdgeList)	{
 		glVertex2i(e.p1.x, e.p1.y);
 		glVertex2i(e.p2.x, e.p2.y);
 	}
@@ -377,13 +346,11 @@ void drawEdges()
 }
 
 // c) render the triangles as solid polygons
-void drawTriangles()
-{
+void drawTriangles() {
 	glLineWidth(2.0f);
 	// get random color
 	glBegin(GL_TRIANGLES);
-	for (Triangle &t : Triangles)
-	{
+	for (Triangle &t : Triangles)	{
 		float r = (float)rand() / (float)RAND_MAX;
 		float g = (float)rand() / (float)RAND_MAX;
 		float b = (float)rand() / (float)RAND_MAX;
@@ -436,10 +403,8 @@ void drawTriangles()
 // }
 
 // menu
-void menu(int id)
-{
-	switch (id)
-	{
+void menu(int id) {
+	switch (id)	{
 	case 1:
 		initPoints();
 		drawPoints();
@@ -462,8 +427,7 @@ void menu(int id)
 }
 
 // prints controls to terminal
-void showcmds()
-{
+void showcmds() {
 	printf("|-----------------------------------------------------------------------|\n");
 	printf("| H: Help                  2D   TRIANGULATION             ESC / Q: Quit |\n");
 	printf("|-----------------------------------------------------------------------|\n");
@@ -472,10 +436,8 @@ void showcmds()
 }
 
 // handles keyboard events
-void keyboard(unsigned char key, int x, int y)
-{
-	switch (tolower(key))
-	{
+void keyboard(unsigned char key, int x, int y) {
+	switch (tolower(key))	{
 	case 'q': // quit with q
 		exit(0);
 		break;
@@ -507,8 +469,7 @@ void keyboard(unsigned char key, int x, int y)
 }
 
 // commenting this out because we might need this later, but I doubt it.
-void display(void)
-{
+void display(void) {
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	// Set dot color to white
@@ -517,8 +478,7 @@ void display(void)
 	glutSwapBuffers();
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
 	glutInitWindowSize(WIDTH, HEIGHT);

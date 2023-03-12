@@ -19,7 +19,7 @@
 const int WIDTH = 800;
 const int HEIGHT = 800;
 const float POINT_RADIUS = 6.0f;
-const int POINT_COUNT = 5; // "n-points", hardcoded for now, maybe we can ask the user how many they want; -/+ an amount.
+const int POINT_COUNT = 10; // "n-points", hardcoded for now, maybe we can ask the user how many they want; -/+ an amount.
 
 struct Point {
 	int x, y;
@@ -93,17 +93,35 @@ struct Triangle {
 	Point p1;
 	Point p2;
 	Point p3;
+	// Edge e1, e2, e3;
 	bool operator==(const Triangle& other) const { return (p1 == other.p1 && p2 == other.p2 && p3 == other.p3) || (p1 == other.p1 && p2 == other.p3 && p3 == other.p2) || (p1 == other.p2 && p2 == other.p1 && p3 == other.p3) || (p1 == other.p2 && p2 == other.p3 && p3 == other.p1) || (p1 == other.p3 && p2 == other.p1 && p3 == other.p2) || (p1 == other.p3 && p2 == other.p2 && p3 == other.p1); }
 	bool operator!=(const Triangle& other) const { return !(*this == other); }
 	bool operator<(const Triangle& other) const { return p1 < other.p1 || (p1 == other.p1 && p2 < other.p2) || (p1 == other.p1 && p2 == other.p2 && p3 < other.p3); }
 	bool operator>(const Triangle& other) const { return p1 > other.p1 || (p1 == other.p1 && p2 > other.p2) || (p1 == other.p1 && p2 == other.p2 && p3 > other.p3); }
+	// check if triangle intersects with another triangle
+	bool intersects(const Triangle& other) const {
+		Edge e1 = { p1, p2 };
+		Edge e2 = { p2, p3 };
+		Edge e3 = { p3, p1 };
+		Edge e4 = { other.p1, other.p2 };
+		Edge e5 = { other.p2, other.p3 };
+		Edge e6 = { other.p3, other.p1 };
 
+		// Check for intersecting edges
+		if (e1.intersects(e4) || e1.intersects(e5) || e1.intersects(e6) ||
+			e2.intersects(e4) || e2.intersects(e5) || e2.intersects(e6) ||
+			e3.intersects(e4) || e3.intersects(e5) || e3.intersects(e6)) {
+			return true;
+		}
+		// Triangles do not intersect
+		return false;
+	}
 };
 
 std::vector<Point> P(POINT_COUNT);
 std::vector<Edge> EdgeList(POINT_COUNT* (POINT_COUNT - 1) / 2);
 std::set<Edge> TriEdge;
-std::vector<Triangle> Triangles(999);
+std::vector<Triangle> Triangles;
 
 // formats the prints with the table edges
 void padprint(const char* str) {
@@ -168,6 +186,10 @@ void extractPolygons() {
 		for (int k = j + 1; k < POINT_COUNT; k++) {
 			for (int l = k + 1; l < POINT_COUNT; l++) {
 				Triangle t = { P[j], P[k], P[l] };
+				// set size of Triangles vector
+				if (i == 0) {
+					Triangles.resize(POINT_COUNT * (POINT_COUNT - 1) * (POINT_COUNT - 2) / 6);
+				}
 				Triangles[i] = t;
 				i++;
 			}
@@ -177,24 +199,21 @@ void extractPolygons() {
 
 // removes triangles that overlap with other triangles
 void cleanup() {
-	std::set<Triangle> S;
-	for (Triangle& t : Triangles) {
-		if (S.find(t) == S.end()) {
-			S.insert(t);
-		}
-	}
 
-	// saves to triangles vector
-	int i = 0;
-	for (const auto& t : S) {
-		Triangles[i] = t;
-		i++;
+	// check if triangle intersects with another triangle
+	for (int i = 0; i < Triangles.size(); i++) {
+		for (int j = i + 1; j < Triangles.size(); j++) {
+			if (Triangles[i].intersects(Triangles[j])) {
+				Triangles.erase(Triangles.begin() + j);
+				j--;
+			}
+		}
 	}
 }
 
 // b) render the edges
 void drawEdges() {
-	glClear(GL_COLOR_BUFFER_BIT);
+	// glClear(GL_COLOR_BUFFER_BIT);
 	glColor3f(0.3, 0.72, 0.56);
 	glLineWidth(2.0f);
 	glBegin(GL_LINES);
@@ -225,45 +244,6 @@ void drawTriangles() {
 	glEnd();
 	glutSwapBuffers();
 }
-
-// d) cleanup Implement the cleanup algorithm discussed in class. It is invoked by a "cleanup" command key (or menu item). It will take the original triangulation from (c), and repeatedly optimize pairs of triangles with shared edges.
-// void cleanup() {
-//     // iterate over all triangles
-//     for (int i = 0; i < Triangles.size(); i++) {
-//         Triangle& t1 = Triangles[i];
-//         for (int j = i + 1; j < Triangles.size(); j++) {
-//             Triangle& t2 = Triangles[j];
-//             // check if triangles share an edge
-//             int sharedEdgeCount = 0;
-//             for (int k = 0; k < 3; k++) {
-//                 for (int l = 0; l < 3; l++) {
-//                     // if (t1.edges[k] == t2.edges[l]) {
-//                     //     sharedEdgeCount++;
-//                     // }
-//                 }
-//             }
-//             // if they share exactly one edge, try to optimize
-//             if (sharedEdgeCount == 1) {
-//                 Edge sharedEdge;
-//                 // find shared edge
-//                 for (int k = 0; k < 3; k++) {
-//                     for (int l = 0; l < 3; l++) {
-//                         // if (t1.edges[k] == t2.edges[l]) {
-//                         //     sharedEdge = t1.edges[k];
-//                         //     break;
-//                         // }
-//                     }
-//                     if (sharedEdge.p1.x != -1) {
-//                         break;
-//                     }
-//                 }
-//             }
-//         }
-//     }
-//     // redraw triangles and edges
-//     drawEdges();
-//     drawTriangles();
-// }
 
 // prints controls to terminal
 void showcmds() {
@@ -302,6 +282,13 @@ void keyboard(unsigned char key, int x, int y) {
 		glutPostRedisplay();
 		break;
 	case 'c':
+		initPoints();
+		calcEdges();
+		extractPolygons();
+		cleanup();
+		drawTriangles();
+		drawEdges();
+		glutPostRedisplay();
 		break;
 	case 'h': // h - help
 		showcmds();

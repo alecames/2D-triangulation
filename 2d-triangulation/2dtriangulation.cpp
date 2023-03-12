@@ -106,50 +106,7 @@ struct Triangle {
 	bool operator!=(const Triangle& other) const { return !(*this == other); }
 	bool operator<(const Triangle& other) const { return p1 < other.p1 || (p1 == other.p1 && p2 < other.p2) || (p1 == other.p1 && p2 == other.p2 && p3 < other.p3); }
 	bool operator>(const Triangle& other) const { return p1 > other.p1 || (p1 == other.p1 && p2 > other.p2) || (p1 == other.p1 && p2 == other.p2 && p3 > other.p3); }
-
-	// check if the triangle contains the point
-	bool contains(const Point& p) const {
-		// check if the point is on the same side of the line as the other two points
-		Edge e1{ p1, p2 };
-		Edge e2{ p2, p3 };
-		Edge e3{ p3, p1 };
-		if (e1.slope() == e2.slope() && e2.slope() == e3.slope())
-			return false;
-		if (e1.slope() == e2.slope() && e1.slope() != e3.slope())
-			return false;
-		if (e1.slope() == e3.slope() && e1.slope() != e2.slope())
-			return false;
-		if (e2.slope() == e3.slope() && e2.slope() != e1.slope())
-			return false;
-
-		// check if the point is within the bounds of the triangle
-		if (p.x < std::min(p1.x, std::min(p2.x, p3.x)) || p.x > std::max(p1.x, std::max(p2.x, p3.x)))
-			return false;
-		if (p.y < std::min(p1.y, std::min(p2.y, p3.y)) || p.y > std::max(p1.y, std::max(p2.y, p3.y)))
-			return false;
-
-		return true;
-	}
-
-	bool intersects(const Triangle& other) const {
-		// check if the two triangles share an edge
-		Edge e1{ p1, p2 };
-		Edge e2{ p2, p3 };
-		Edge e3{ p3, p1 };
-		Edge e4{ other.p1, other.p2 };
-		Edge e5{ other.p2, other.p3 };
-		Edge e6{ other.p3, other.p1 };
-		if (e1 == e4 || e1 == e5 || e1 == e6 || e2 == e4 || e2 == e5 || e2 == e6 || e3 == e4 || e3 == e5 || e3 == e6)
-			return false;
-
-		// check if the two triangles intersect
-		if (other.contains(p1) || other.contains(p2) || other.contains(p3))
-			return true;
-		if (contains(other.p1) || contains(other.p2) || contains(other.p3))
-			return true;
-
-		return false;
-	}
+	
 };
 
 std::vector<Point> P(POINT_COUNT);

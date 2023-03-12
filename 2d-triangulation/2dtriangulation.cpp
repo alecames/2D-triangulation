@@ -130,6 +130,7 @@ struct Triangle {
 
 		return true;
 	}
+
 	bool intersects(const Triangle& other) const {
 		// check if the two triangles share an edge
 		Edge e1{ p1, p2 };
@@ -219,7 +220,6 @@ void calcEdges() {
 
 	// (FILTER) Find all edges with intersections and disregard them when inserting edges into TriList.
 	// This loop will compare every combination of edges and determine which ones have intersections with each other. 
-
 	bool intersection;
 
 	// get Line segments L1 and L2
@@ -282,6 +282,7 @@ void calcEdges() {
 						}
                 	}
             	}
+
 			}
 		}
 		if(!intersection) {
@@ -289,8 +290,12 @@ void calcEdges() {
 		}
 	}
 
-	
+	// b) print number of TriEdges
+	printf("TriEdges: %i\n", TriEdge.size());
 
+	for(Edge e : TriEdge) {
+		printf("Length: %i\n", e.length);
+	}
 }
 
 
@@ -324,6 +329,38 @@ void extractTriangles() {
 
     printf("Triangles: %i\n", numTriangles);
 }
+
+// b) render the edges
+void drawEdges() {
+	glColor3f(0.3, 0.72, 0.56);
+	glLineWidth(2.0f);
+	glBegin(GL_LINES);
+	for (Edge& e : EdgeList) {
+		glVertex2i(e.p1.x, e.p1.y);
+		glVertex2i(e.p2.x, e.p2.y);
+	}
+	glEnd();
+	glutSwapBuffers();
+}
+
+// c) render the triangles as solid polygons
+void drawTriangles() {
+	glLineWidth(2.0f);
+	// get random color
+	glBegin(GL_TRIANGLES);
+	for (Triangle& t : Triangles) {
+		float r = (float)rand() / (float)RAND_MAX;
+		float g = (float)rand() / (float)RAND_MAX;
+		float b = (float)rand() / (float)RAND_MAX;
+		glColor3f(r, g, b);
+		glVertex2i(t.p1.x, t.p1.y);
+		glVertex2i(t.p2.x, t.p2.y);
+		glVertex2i(t.p3.x, t.p3.y);
+	}
+	glEnd();
+	glutSwapBuffers();
+}
+
 
 // d) cleanup Implement the cleanup algorithm discussed in class. It is invoked by a "cleanup" command key (or menu item). It will take the original triangulation from (c), and repeatedly optimize pairs of triangles with shared edges.
 void cleanup() {
@@ -362,37 +399,6 @@ void cleanup() {
     // redraw triangles and edges
     drawEdges();
     drawTriangles();
-}
-
-// b) render the edges
-void drawEdges() {
-	glColor3f(0.3, 0.72, 0.56);
-	glLineWidth(2.0f);
-	glBegin(GL_LINES);
-	for (Edge& e : EdgeList) {
-		glVertex2i(e.p1.x, e.p1.y);
-		glVertex2i(e.p2.x, e.p2.y);
-	}
-	glEnd();
-	glutSwapBuffers();
-}
-
-// c) render the triangles as solid polygons
-void drawTriangles() {
-	glLineWidth(2.0f);
-	// get random color
-	glBegin(GL_TRIANGLES);
-	for (Triangle& t : Triangles) {
-		float r = (float)rand() / (float)RAND_MAX;
-		float g = (float)rand() / (float)RAND_MAX;
-		float b = (float)rand() / (float)RAND_MAX;
-		glColor3f(r, g, b);
-		glVertex2i(t.p1.x, t.p1.y);
-		glVertex2i(t.p2.x, t.p2.y);
-		glVertex2i(t.p3.x, t.p3.y);
-	}
-	glEnd();
-	glutSwapBuffers();
 }
 
 // menu

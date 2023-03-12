@@ -19,7 +19,7 @@
 const int WIDTH = 800;
 const int HEIGHT = 800;
 const float POINT_RADIUS = 6.0f;
-const int POINT_COUNT = 5; // "n-points", hardcoded for now, maybe we can ask the user how many they want; -/+ an amount.
+const int POINT_COUNT = 4; // "n-points", hardcoded for now, maybe we can ask the user how many they want; -/+ an amount.
 
 struct Point {
 	int x, y;
@@ -35,7 +35,7 @@ struct Edge {
 	unsigned int length;
 	bool operator<(const Edge& other) const { return length < other.length; }
 	bool operator>(const Edge& other) const { return length > other.length; }
-	bool operator==(const Edge& other) const { return p1 == other.p1 && p2 == other.p2; }
+	bool operator==(const Edge& other) const { return p1 == other.p1 && p2 == other.p2 && length == other.length; }
 	float slope() const { return (float)(p2.y - p1.y) / (float)(p2.x - p1.x); }
 	bool intersects(Edge& other) {
 		// check if the two lines are parallel
@@ -68,7 +68,7 @@ struct Edge {
 	}
 
 	Point intersection(const Edge& other) const {
-		// check if the two lines are parallel
+		// check if the two lines are parallel 
 		if (slope() == other.slope())
 			return Point{ -1, -1 };
 
@@ -158,12 +158,38 @@ void drawPoints() {
 	glutSwapBuffers();
 }
 
+// ! temp function for debugging
+void printEdge(const Edge& e) {
+    printf("\tp1.x: %d\n", e.p1.x);
+    printf("\tp1.y: %d\n", e.p1.y);
+    printf("\tp2.x: %d\n", e.p2.x);
+    printf("\tp2.y: %d\n", e.p2.y);
+    printf("\tlength: %d\n", e.length);
+}
+
+bool atEndPoint(int xa, int ya, int xb, int yb, int xc, int yc, int xd, int yd) {
+	if (xa == xc && ya == yc) { // check if L1 start point matches L2 start point
+        return true;
+    }
+    if (xa == xd && ya == yd) { // check if L1 start point matches L2 end point
+        return true;
+    }
+    if (xb == xc && yb == yc) { // check if L1 end point matches L2 start point
+        return true;
+    }
+    if (xb == xd && yb == yd) { // check if L1 end point matches L2 end point
+        return true;
+    }
+    return false; // no end points matched
+}
+
 // b) naive triangulation algorithm
 void calcEdges() {
 	// calculate length, save to edge list;
 	int numEdges = 0;
 
 	// finding ALL possible edges
+	printf("\t\t\t<> Finding ALL possible edges <>\n");
 	for (int i = 0; i < POINT_COUNT; i++) {
 		for (int j = i + 1; j < POINT_COUNT; j++) {
 			// calculate the distance between the two points
@@ -176,8 +202,6 @@ void calcEdges() {
 			// Distance between 2 points (x0, y0) and (x1, y1): d = sqrt((x1-x0)^2 + (y1-y0)^2)
 			unsigned int length = sqrt(pow(x1 - x0, 2) + pow(y1 - y0, 2));
 
-			// printf("Edge #%i from i = P[%i] to j = P[%i]\tlength: %i\n", numEdges, i, j, length);
-
 			// b) save the triangles in a data structure
 			Edge e = { P[i], P[j], length };
 			EdgeList[numEdges] = e;
@@ -186,24 +210,30 @@ void calcEdges() {
 	}
 
 	// b) count and print the number of edges created
-	printf("Edges: %i\n", numEdges);
+	printf("# of Edges: %i\n", numEdges);
+	std::sort(EdgeList.begin(), EdgeList.end());	// sort edge vector in order of least-greatest edge length (takes nlogn time)
+	printf("All Edge Lengths: ");
+	for(Edge e : EdgeList) {
+		printf("%i, ", e.length);
+	}
+	printf("\n");
 
-	// sort edge vector in order of least-greatest edge length (takes nlogn time)
-	std::sort(EdgeList.begin(), EdgeList.end());
-
-	// (FILTER) Find all edges with intersections and disregard them when inserting edges into TriList.
+	// (FILTER) Find all edges with intersections and disregard them when inserting edges into TriEdge set.
 	// This loop will compare every combination of edges and determine which ones have intersections with each other.
+	printf("\n\t\t\t<> Insert all Edges with no intersections into TriEdges <>\n");
 	bool intersection;
 	TriEdge.clear();
 
 	for (int i = 0; i < numEdges; i++) {
 		Edge L1 = EdgeList[i];
 		intersection = false; // initially assume edge encounters no intersections
-
+		printf("Looping through [i : %i]\n", i);
 		// compare L1 with each L2 in Tri Edge
 		for (Edge L2 : TriEdge) {
-			if (&L1 && &L2)
+			if (L1 == L2) {
+				// printf("Duplicate: L1 == L2 at [i: %i]\n", i);	// ! debugging
 				continue;
+			}
 
 			// Line Segment 1 (L1)
 			Point pointA = L1.p1;
@@ -221,50 +251,64 @@ void calcEdges() {
 			int xd = pointD.x;
 			int yd = pointD.y;
 
-			int D = (xb - xa) * (yd - yc) - (yb - ya) * (xd - xc);
+			int D = ((xb - xa) * (yd - yc)) - ((yb - ya) * (xd - xc));
 
 			if (D != 0) {
-				printf("D != 0\n");
+				// printf("D != 0\n");	// ! debugging
 				int ta;
 				int tb;
 
 				// (i) L2 is not vertical
 				if ((xd - xc) != 0) {
-					printf("not vertical\n");
-					ta = ((xc - xa) * (yd - yc) - (yc - ya) * (xd - xc)) / D;
+					// printf("not vertical\n");
+					ta = (((xc - xa) * (yd - yc)) - ((yc - ya) * (xd - xc))) / D;
 					tb = (xa - xc + (xb - xa) * ta) / (xd - xc);
 
+					// printf("[ta: %i]\t[tb: %i]\n", ta, tb);	// ! debugging
+
 					if ((ta >= 0 && ta <= 1) && (tb >= 0 && tb <= 1)) {
+						printf("Intersection\n", i);	// ! debugging: intersection can occur at endpoints
+						if(atEndPoint(xa, ya, xb, yb, xc, yc, xd, yd)) {
+							printf("Endpoints met.\n");
+							break;
+						}
+						printf("Endpoints not met:\n");
+						printf("L1");
+						printEdge(L1);
+						printf("L2");
+						printEdge(L2);
 						intersection = true;
 						break;
 					}
+					printf("No intersection occured at [i: %i]\n", i);
 				}
 				// (ii) L2 is vertical
-				else if ((xd - xc) == 0) {
-					printf("is vertical\n");
-					ta = (xc - xa) / (xb - xa);
-					tb = (ya + ta * (yb - ya) - yc) / (yd - yc);
+				// else if ((xd - xc) == 0) {
+				// 	printf("is vertical\n");
+				// 	ta = (xc - xa) / (xb - xa);
+				// 	tb = (ya + ta * (yb - ya) - yc) / (yd - yc);
 
-					if (ta >= 0 && ta <= 1 && tb >= 0 && tb <= 1) {
-						intersection = true;
-						break;
-					}
-				}
-			}
-			//	in D == 0, they might overlap, but we'll not need to deal with this
+				// 	if (ta >= 0 && ta <= 1 && tb >= 0 && tb <= 1) {
+				// 		printf("\tIntersection at [i: %i]\n", i);	// ! debugging
+				// 		intersection = true;
+				// 		break;
+				// 	}
+				// }
+
+			}	// if
 		} // for-each
-
 		if (!intersection) { // if there is no intersection, then we can add it to TriEdge
 			TriEdge.insert(L1);
 		}
+		printf("\n");
 
 	} // for
 
 	// b) print number of TriEdges
-	printf("TriEdges: %i\n", TriEdge.size());
+	printf("# of TriEdges: %i\n", TriEdge.size());
 
-	printf("Tri-Length: ");
-	for (Edge e : TriEdge) {
+	printf("ALL TriEdge Lengths: ");
+	for (const Edge e : TriEdge) {
 		printf("%i ", e.length);
 	}
 	printf("\n");
@@ -394,6 +438,8 @@ void keyboard(unsigned char key, int x, int y) {
 	case 'r': // reset display
 		initPoints();
 		drawPoints();
+		calcEdges();	// ! temp delete
+		drawEdges();	// ! temp delete
 		glutPostRedisplay();
 		break;
 	case 'd':

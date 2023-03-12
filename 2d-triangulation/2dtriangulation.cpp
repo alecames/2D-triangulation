@@ -106,7 +106,7 @@ struct Triangle {
 	bool operator!=(const Triangle& other) const { return !(*this == other); }
 	bool operator<(const Triangle& other) const { return p1 < other.p1 || (p1 == other.p1 && p2 < other.p2) || (p1 == other.p1 && p2 == other.p2 && p3 < other.p3); }
 	bool operator>(const Triangle& other) const { return p1 > other.p1 || (p1 == other.p1 && p2 > other.p2) || (p1 == other.p1 && p2 == other.p2 && p3 > other.p3); }
-	
+
 };
 
 std::vector<Point> P(POINT_COUNT);
@@ -127,22 +127,22 @@ void padprint(const char* str) {
 
 // a) generate N random unique points on the plane
 void initPoints() {
-    std::set<Point> S;
-    while (S.size() < POINT_COUNT) {
-        int x = rand() % WIDTH;
-        int y = rand() % HEIGHT;
-        Point p = { x, y };
-        if (S.find(p) == S.end()) {
-            S.insert(p);
-        }
-    }
+	std::set<Point> S;
+	while (S.size() < POINT_COUNT) {
+		int x = rand() % WIDTH;
+		int y = rand() % HEIGHT;
+		Point p = { x, y };
+		if (S.find(p) == S.end()) {
+			S.insert(p);
+		}
+	}
 
 	// saves to points vector
 	int i = 0;
-    for (const auto& p : S) {
-        P[i] = p;
-        i++;
-    }
+	for (const auto& p : S) {
+		P[i] = p;
+		i++;
+	}
 }
 
 // a) render these points

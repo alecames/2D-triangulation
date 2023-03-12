@@ -19,7 +19,7 @@
 const int WIDTH = 800;
 const int HEIGHT = 800;
 const float POINT_RADIUS = 6.0f;
-const int POINT_COUNT = 10; // "n-points", hardcoded for now, maybe we can ask the user how many they want; -/+ an amount.
+const int POINT_COUNT = 10;
 
 struct Point {
 	int x, y;
@@ -62,29 +62,20 @@ struct Edge {
 	Point intersect(const Edge& other) const {
 		// check if the two lines are parallel
 		if (slope() == other.slope()) return Point{ -1, -1 };
-
-		// vertical lines
-		if (p1.x == p2.x || other.p1.x == other.p2.x)
-			return Point{ -1, -1 };
+		if (p1.x == p2.x || other.p1.x == other.p2.x) return Point{ -1, -1 };
 
 		// check if the two lines are horizontal
-		if (p1.y == p2.y || other.p1.y == other.p2.y)
-			return Point{ -1, -1 };
+		if (p1.y == p2.y || other.p1.y == other.p2.y) return Point{ -1, -1 };
 
 		// check if the two lines intersect
 		float x = ((p1.x * p2.y - p1.y * p2.x) * (other.p1.x - other.p2.x) - (p1.x - p2.x) * (other.p1.x * other.p2.y - other.p1.y * other.p2.x)) / ((p1.x - p2.x) * (other.p1.y - other.p2.y) - (p1.y - p2.y) * (other.p1.x - other.p2.x));
 		float y = ((p1.x * p2.y - p1.y * p2.x) * (other.p1.y - other.p2.y) - (p1.y - p2.y) * (other.p1.x * other.p2.y - other.p1.y * other.p2.x)) / ((p1.x - p2.x) * (other.p1.y - other.p2.y) - (p1.y - p2.y) * (other.p1.x - other.p2.x));
 
 		// check if the intersection point is within the bounds of the two lines
-		if (x < std::min(p1.x, p2.x) || x > std::max(p1.x, p2.x))
-			return Point{ -1, -1 };
-		if (x < std::min(other.p1.x, other.p2.x) || x > std::max(other.p1.x, other.p2.x))
-			return Point{ -1, -1 };
-		if (y < std::min(p1.y, p2.y) || y > std::max(p1.y, p2.y))
-			return Point{ -1, -1 };
-		if (y < std::min(other.p1.y, other.p2.y) || y > std::max(other.p1.y, other.p2.y))
-			return Point{ -1, -1 };
-
+		if (x < std::min(p1.x, p2.x) || x > std::max(p1.x, p2.x)) return Point{ -1, -1 };
+		if (x < std::min(other.p1.x, other.p2.x) || x > std::max(other.p1.x, other.p2.x)) return Point{ -1, -1 };
+		if (y < std::min(p1.y, p2.y) || y > std::max(p1.y, p2.y)) return Point{ -1, -1 };
+		if (y < std::min(other.p1.y, other.p2.y) || y > std::max(other.p1.y, other.p2.y)) return Point{ -1, -1 };
 		return Point{ int(x), int(y) };
 	}
 };
@@ -92,13 +83,12 @@ struct Edge {
 struct Triangle {
 	Point p1;
 	Point p2;
-	Point p3;
-	// Edge e1, e2, e3;
-	bool operator==(const Triangle& other) const { return (p1 == other.p1 && p2 == other.p2 && p3 == other.p3) || (p1 == other.p1 && p2 == other.p3 && p3 == other.p2) || (p1 == other.p2 && p2 == other.p1 && p3 == other.p3) || (p1 == other.p2 && p2 == other.p3 && p3 == other.p1) || (p1 == other.p3 && p2 == other.p1 && p3 == other.p2) || (p1 == other.p3 && p2 == other.p2 && p3 == other.p1); }
+	Point p3;	bool operator==(const Triangle& other) const { return (p1 == other.p1 && p2 == other.p2 && p3 == other.p3) || (p1 == other.p1 && p2 == other.p3 && p3 == other.p2) || (p1 == other.p2 && p2 == other.p1 && p3 == other.p3) || (p1 == other.p2 && p2 == other.p3 && p3 == other.p1) || (p1 == other.p3 && p2 == other.p1 && p3 == other.p2) || (p1 == other.p3 && p2 == other.p2 && p3 == other.p1); }
 	bool operator!=(const Triangle& other) const { return !(*this == other); }
 	bool operator<(const Triangle& other) const { return p1 < other.p1 || (p1 == other.p1 && p2 < other.p2) || (p1 == other.p1 && p2 == other.p2 && p3 < other.p3); }
 	bool operator>(const Triangle& other) const { return p1 > other.p1 || (p1 == other.p1 && p2 > other.p2) || (p1 == other.p1 && p2 == other.p2 && p3 > other.p3); }
 	// check if triangle intersects with another triangle
+	// TODO: needs to be tweaked to allow for adjacent triangles
 	bool intersects(const Triangle& other) const {
 		Edge e1 = { p1, p2 };
 		Edge e2 = { p2, p3 };
@@ -106,33 +96,20 @@ struct Triangle {
 		Edge e4 = { other.p1, other.p2 };
 		Edge e5 = { other.p2, other.p3 };
 		Edge e6 = { other.p3, other.p1 };
-
-		// Check for intersecting edges
 		if (e1.intersects(e4) || e1.intersects(e5) || e1.intersects(e6) ||
 			e2.intersects(e4) || e2.intersects(e5) || e2.intersects(e6) ||
 			e3.intersects(e4) || e3.intersects(e5) || e3.intersects(e6)) {
 			return true;
 		}
-		// Triangles do not intersect
 		return false;
 	}
 };
 
+// global variables
 std::vector<Point> P(POINT_COUNT);
 std::vector<Edge> EdgeList(POINT_COUNT* (POINT_COUNT - 1) / 2);
 std::set<Edge> TriEdge;
 std::vector<Triangle> Triangles;
-
-// formats the prints with the table edges
-void padprint(const char* str) {
-	int len = strlen(str);
-	int pad = 70 - len;
-	printf("| ");
-	printf("%s", str);
-	for (int i = 0; i < pad; i++)
-		printf(" ");
-	printf("|\n");
-}
 
 // a) generate N random unique points on the plane
 void initPoints() {
@@ -163,6 +140,7 @@ void drawPoints() {
 	for (Point& p : P) {
 		glVertex2i(p.x, p.y);
 	}
+	printf("Points: %d \n", POINT_COUNT);
 	glEnd();
 	glutSwapBuffers();
 }
@@ -199,8 +177,6 @@ void extractPolygons() {
 
 // removes triangles that overlap with other triangles
 void cleanup() {
-
-	// check if triangle intersects with another triangle
 	for (int i = 0; i < Triangles.size(); i++) {
 		for (int j = i + 1; j < Triangles.size(); j++) {
 			if (Triangles[i].intersects(Triangles[j])) {
@@ -213,7 +189,7 @@ void cleanup() {
 
 // b) render the edges
 void drawEdges() {
-	// glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT);
 	glColor3f(0.3, 0.72, 0.56);
 	glLineWidth(2.0f);
 	glBegin(GL_LINES);
@@ -221,6 +197,7 @@ void drawEdges() {
 		glVertex2i(e.p1.x, e.p1.y);
 		glVertex2i(e.p2.x, e.p2.y);
 	}
+	printf("Edges: %d \n", EdgeList.size());
 	glEnd();
 	glutSwapBuffers();
 }
@@ -228,7 +205,6 @@ void drawEdges() {
 // c) render the triangles as solid polygons
 void drawTriangles() {
 	glClear(GL_COLOR_BUFFER_BIT);
-	printf("Triangles: %d \n", Triangles.size());
 	glLineWidth(2.0f);
 	// get random color
 	glBegin(GL_TRIANGLES);
@@ -241,6 +217,7 @@ void drawTriangles() {
 		glVertex2i(t.p2.x, t.p2.y);
 		glVertex2i(t.p3.x, t.p3.y);
 	}
+	printf("Triangles: %d \n", Triangles.size());
 	glEnd();
 	glutSwapBuffers();
 }
@@ -250,7 +227,7 @@ void showcmds() {
 	printf("|-----------------------------------------------------------------------|\n");
 	printf("| H: Help                  2D   TRIANGULATION             ESC / Q: Quit |\n");
 	printf("|-----------------------------------------------------------------------|\n");
-	printf("| R: Reset Points                                         D: Draw Edges |\n");
+	printf("| 1: Generate Points | 2: Draw Edges | 3: Create Polygons | 4: Clean Up |\n");
 	printf("|-----------------------------------------------------------------------|\n");
 }
 
@@ -263,31 +240,24 @@ void keyboard(unsigned char key, int x, int y) {
 	case 27: // quit with esc
 		exit(0);
 		break;
-	case 'r': // reset display
+	case '1': // 1st step - generate points
 		initPoints();
 		drawPoints();
 		glutPostRedisplay();
 		break;
-	case 'd':
-		initPoints();
+	case '2': // 2nd step - generate edges
 		calcEdges();
 		drawEdges();
 		glutPostRedisplay();
 		break;
-	case 't':
-		initPoints();
-		calcEdges();
+	case '3': // 3rd step - extract triangles
 		extractPolygons();
 		drawTriangles();
 		glutPostRedisplay();
 		break;
-	case 'c':
-		initPoints();
-		calcEdges();
-		extractPolygons();
+	case '4': // 4th step - cleanup
 		cleanup();
 		drawTriangles();
-		drawEdges();
 		glutPostRedisplay();
 		break;
 	case 'h': // h - help
@@ -299,9 +269,7 @@ void keyboard(unsigned char key, int x, int y) {
 }
 
 void display(void) {
-	// glClear(GL_COLOR_BUFFER_BIT);
-	// // glutSwapBuffers();
-	// glutPostRedisplay();
+
 }
 
 int main(int argc, char** argv) {
@@ -310,13 +278,6 @@ int main(int argc, char** argv) {
 	glutInitWindowSize(WIDTH, HEIGHT);
 	glutInitWindowPosition((glutGet(GLUT_SCREEN_WIDTH) - WIDTH) / 2, (glutGet(GLUT_SCREEN_HEIGHT) - HEIGHT) / 2); // makes the window appear in the center of the screen
 	glutCreateWindow("2D Triangulation");
-
-	// glutCreateMenu(menu);
-	// glutAddMenuEntry("Reset Points", 1);
-	// glutAddMenuEntry("Draw Edges", 2);
-	// glutAddMenuEntry("Draw Triangles", 3);
-	// glutAddMenuEntry("Quit", 4);
-	// glutAttachMenu(GLUT_RIGHT_BUTTON);
 
 	// initialize
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -327,14 +288,9 @@ int main(int argc, char** argv) {
 	// show print controls
 	showcmds();
 
-	// Set seed for rand()
-	srand(time(NULL));
-
 	glutKeyboardFunc(keyboard);
 	glutDisplayFunc(display);
-
-	// initialize all the points to be rendered
-	drawPoints();
+	glutSwapBuffers();
 
 	glEnable(GL_BLEND); // attempt to smooth out points
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

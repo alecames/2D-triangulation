@@ -1,6 +1,10 @@
 # OpenGL 2D Triangulation
 
-This is a simple demo of OpenGL 2D triangulation given a set of points. This program is written in C++ using OpenGL and GLUT libraries.
+## COSC 3P98 - Computer Graphics
+### Assignment 2
+
+#### Group Members
+Alec Ames 6843577 && Julian Geronimo 6756597 
 
 ## How to compile
 

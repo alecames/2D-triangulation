@@ -36,60 +36,10 @@ struct Edge {
 	unsigned int length;
 	bool operator<(const Edge& other) const { return length < other.length; }
 	bool operator>(const Edge& other) const { return length > other.length; }
-	bool operator==(const Edge& other) const { return p1 == other.p1 && p2 == other.p2; }
-	bool operator!=(const Edge& other) const { return p1 != other.p1 || p2 != other.p2; }
-	float slope() const {
-		if (p2.x == p1.x) { return std::numeric_limits<float>::infinity(); }
-		return (float)(p2.y - p1.y) / (float)(p2.x - p1.x);
-	}
-	bool connected(const Edge& other) const { return p1 == other.p1 || p1 == other.p2 || p2 == other.p1 || p2 == other.p2; }
-	bool intersects(Edge& other) {
-		// check if the two lines are parallel
-		if (slope() == other.slope()) return false;
-		if (p1.x == p2.x || other.p1.x == other.p2.x) return false;
-		if (p1.y == p2.y || other.p1.y == other.p2.y) return false;
-
-		// check if the two lines intersect
-		float x = ((p1.x * p2.y - p1.y * p2.x) * (other.p1.x - other.p2.x) - (p1.x - p2.x) * (other.p1.x * other.p2.y - other.p1.y * other.p2.x)) / ((p1.x - p2.x) * (other.p1.y - other.p2.y) - (p1.y - p2.y) * (other.p1.x - other.p2.x));
-		float y = ((p1.x * p2.y - p1.y * p2.x) * (other.p1.y - other.p2.y) - (p1.y - p2.y) * (other.p1.x * other.p2.y - other.p1.y * other.p2.x)) / ((p1.x - p2.x) * (other.p1.y - other.p2.y) - (p1.y - p2.y) * (other.p1.x - other.p2.x));
-
-		// check if the intersection point is within the bounds of the two lines
-		if (x < std::min(p1.x, p2.x) || x > std::max(p1.x, p2.x)) return false;
-		if (x < std::min(other.p1.x, other.p2.x) || x > std::max(other.p1.x, other.p2.x)) return false;
-		if (y < std::min(p1.y, p2.y) || y > std::max(p1.y, p2.y)) return false;
-		if (y < std::min(other.p1.y, other.p2.y) || y > std::max(other.p1.y, other.p2.y)) return false;
-		return true;
-	}
-
-	Point intersect(const Edge& other) const {
-		// check if the two lines are parallel
-		if (slope() == other.slope()) return Point{ -1, -1 };
-		if (p1.x == p2.x || other.p1.x == other.p2.x) return Point{ -1, -1 };
-		if (p1.y == p2.y || other.p1.y == other.p2.y) return Point{ -1, -1 };
-
-		float x = ((p1.x * p2.y - p1.y * p2.x) * (other.p1.x - other.p2.x) - (p1.x - p2.x) * (other.p1.x * other.p2.y - other.p1.y * other.p2.x)) / ((p1.x - p2.x) * (other.p1.y - other.p2.y) - (p1.y - p2.y) * (other.p1.x - other.p2.x));
-		float y = ((p1.x * p2.y - p1.y * p2.x) * (other.p1.y - other.p2.y) - (p1.y - p2.y) * (other.p1.x * other.p2.y - other.p1.y * other.p2.x)) / ((p1.x - p2.x) * (other.p1.y - other.p2.y) - (p1.y - p2.y) * (other.p1.x - other.p2.x));
-
-		// check if the intersection point is within the bounds of the two lines
-		if (x < std::min(p1.x, p2.x) || x > std::max(p1.x, p2.x)) return Point{ -1, -1 };
-		if (x < std::min(other.p1.x, other.p2.x) || x > std::max(other.p1.x, other.p2.x)) return Point{ -1, -1 };
-		if (y < std::min(p1.y, p2.y) || y > std::max(p1.y, p2.y)) return Point{ -1, -1 };
-		if (y < std::min(other.p1.y, other.p2.y) || y > std::max(other.p1.y, other.p2.y)) return Point{ -1, -1 };
-		return Point{ x, y };
-	}
 };
 
 struct Triangle {
 	Edge e1, e2, e3;
-	bool operator==(const Triangle& other) const { return (e1 == other.e1 && e2 == other.e2 && e3 == other.e3) || (e1 == other.e2 && e2 == other.e3 && e3 == other.e1) || (e1 == other.e3 && e2 == other.e1 && e3 == other.e2); }
-	bool operator!=(const Triangle& other) const { return !(*this == other); }
-	bool operator<(const Triangle& other) const { return e1 < other.e1 || (e1 == other.e1 && e2 < other.e2) || (e1 == other.e1 && e2 == other.e2 && e3 < other.e3); }
-	bool operator>(const Triangle& other) const { return e1 > other.e1 || (e1 == other.e1 && e2 > other.e2) || (e1 == other.e1 && e2 == other.e2 && e3 > other.e3); }
-	bool intersects(Triangle& other) {
-		return e1.intersects(other.e1) || e1.intersects(other.e2) || e1.intersects(other.e3) ||
-			e2.intersects(other.e1) || e2.intersects(other.e2) || e2.intersects(other.e3) ||
-			e3.intersects(other.e1) || e3.intersects(other.e2) || e3.intersects(other.e3);
-	}
 };
 
 std::vector<Point> P(POINT_COUNT);
@@ -116,28 +66,17 @@ void initPoints() {
 	}
 }
 
-// formats the prints with the table edges
-void padprint(const char* str) {
-	int len = strlen(str);
-	int pad = 70 - len;
-	printf("| ");
-	printf("%s", str);
-	for (int i = 0; i < pad; i++)
-		printf(" ");
-	printf("|\n");
-}
-
 // e) generate lattice points
 void initLatticePoints() {
-	int numRows = std::sqrt(POINT_COUNT * HEIGHT / WIDTH);
-	int numCols = POINT_COUNT / numRows;
-	int xgap = WIDTH / numCols;
-	int ygap = HEIGHT / numRows;
+	int rows = std::sqrt(POINT_COUNT * HEIGHT / WIDTH);
+	int cols = POINT_COUNT / rows;
+	int xgap = WIDTH / cols;
+	int ygap = HEIGHT / rows;
 
 	// generates lattice points
 	int index = 0;
-	for (int i = 0; i < numRows; i++) {
-		for (int j = 0; j < numCols; j++) {
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
 			float x = (j + 0.5) * xgap;
 			float y = (i + 0.5) * ygap;
 			P[index++] = { x, y };
@@ -154,7 +93,7 @@ void drawPoints() {
 	for (Point& p : P) {
 		glVertex2i(p.x, p.y);
 	}
-	printf("Points: %i \n", POINT_COUNT);
+	printf("| Points: %i \n", POINT_COUNT);
 	glEnd();
 	glutSwapBuffers();
 }
@@ -243,7 +182,7 @@ void drawEdges() {
 		glVertex2i(e.p2.x, e.p2.y);
 	}
 	// b) count and print the number of edges created
-	printf("Edges: %i \n", TriEdge.size());
+	printf("| Edges: %i \n", TriEdge.size());
 	glEnd();
 	glutSwapBuffers();
 }
@@ -279,7 +218,7 @@ void drawTriangles() {
 		glVertex2i(t.e2.p2.x, t.e2.p2.y);
 	}
 	// c) count and print the number of triangles created
-	printf("Triangles: %i \n", Triangles.size());
+	printf("| Triangles: %i \n", Triangles.size());
 	glEnd();
 	glutSwapBuffers();
 }

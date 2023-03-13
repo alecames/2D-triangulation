@@ -10,11 +10,12 @@
 #include <algorithm>
 #include <set>
 
+// COSC 3P98 - Computer Graphics - Assignment 2
 // This program will preform 2D triangulation on a set of points
 
 // Alec Ames 		6843577
 // Julian Geronimo 	6756597
-// COSC 3P98 - Computer Graphics - Assignment 2
+
 
 const int WIDTH = 800;
 const int HEIGHT = 800;
@@ -128,10 +129,10 @@ void padprint(const char* str) {
 
 // e) generate lattice points
 void initLatticePoints() {
-	int numRows = std::sqrt(POINT_COUNT * HEIGHT / WIDTH);  // number of rows in the grid
-	int numCols = POINT_COUNT / numRows;  // number of columns in the grid
-	int xgap = WIDTH / numCols;  // spacing between columns
-	int ygap = HEIGHT / numRows;  // spacing between rows
+	int numRows = std::sqrt(POINT_COUNT * HEIGHT / WIDTH);
+	int numCols = POINT_COUNT / numRows;
+	int xgap = WIDTH / numCols;
+	int ygap = HEIGHT / numRows;
 
 	// generates lattice points
 	int index = 0;
@@ -156,18 +157,6 @@ void drawPoints() {
 	printf("Points: %i \n", POINT_COUNT);
 	glEnd();
 	glutSwapBuffers();
-}
-
-// ! temp function for debugging
-void printEdge(const Edge& e) {
-	printf("\tp1.x: %f    p1.y: %f\n", e.p1.x, e.p1.y);
-	printf("\tp2.x: %f    p2.y: %f\n", e.p2.x, e.p2.y);
-	// printf("\tlength: %d\n", e.length);
-}
-
-void calcTriangles() {
-	// Step 4:
-
 }
 
 void calcTriEdges() {
@@ -195,11 +184,10 @@ void calcTriEdges() {
 
 	// sort edge vector in order of least-greatest edge length (takes nlogn time)
 	std::sort(EdgeList.begin(), EdgeList.end());
-
 	bool intersection;
 	TriEdge.clear();
 
-	for (int i = 0; i < numEdges; i++) {	// Not using for-each so we can keep track of iterations
+	for (int i = 0; i < numEdges; i++) { // Not using for-each so we can keep track of iterations
 		Edge L1 = EdgeList[i];
 		intersection = false; // initially assume edge encounters no intersections
 
@@ -224,9 +212,8 @@ void calcTriEdges() {
 
 			float D = ((xb - xa) * (yd - yc)) - ((yb - ya) * (xd - xc));
 
-			if (D == 0) {	// if parallel, we skip
-				continue;
-			}
+			// if parallel, we skip
+			if (D == 0) continue;
 
 			float ta = (((xc - xa) * (yd - yc)) - ((yc - ya) * (xd - xc))) / D;
 			float tb = (xa - xc + (xb - xa) * ta) / (xd - xc);
@@ -242,7 +229,6 @@ void calcTriEdges() {
 		if (!intersection) { // if there is no intersection, then we can add it to TriEdge
 			TriEdge.insert(L1);
 		}
-
 	}
 }
 
@@ -264,15 +250,13 @@ void drawEdges() {
 
 // c) triangle polygon extaction - extract triangle polygons from the edges
 void extractTriangles() {
-	// draw coloured triangles for each 3 edges
 	for (Edge e1 : TriEdge) {
 		for (Edge e2 : TriEdge) {
 			for (Edge e3 : TriEdge) {
-				// check if e1, e2, e3 form a triangle
+				// checks if e1, e2, e3 make triangle
 				if (e1.p1 == e2.p1 && e1.p2 == e3.p1 && e2.p2 == e3.p2) {
 					Triangle t = { e1, e2, e3 };
 					Triangles.push_back(t);
-					// resize traignle vector
 					Triangles.resize(Triangles.size() + 1);
 				}
 			}
@@ -284,7 +268,6 @@ void extractTriangles() {
 void drawTriangles() {
 	glClear(GL_COLOR_BUFFER_BIT);
 	glLineWidth(0.0f);
-	// get random color
 	glBegin(GL_TRIANGLES);
 	for (const Triangle& t : Triangles) {
 		float r = float(rand()) / RAND_MAX;
@@ -329,7 +312,7 @@ void keyboard(unsigned char key, int x, int y) {
 		drawPoints();
 		glutPostRedisplay();
 		break;
-	case 't': // 1st step - generate points (lattice)
+	case 'l': // 1st step - generate points (lattice)
 		initLatticePoints();
 		drawPoints();
 		glutPostRedisplay();
@@ -359,10 +342,6 @@ void keyboard(unsigned char key, int x, int y) {
 	}
 }
 
-void display(void) {
-
-}
-
 int main(int argc, char** argv) {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
@@ -378,10 +357,7 @@ int main(int argc, char** argv) {
 
 	// show print controls
 	showcmds();
-
-	glutDisplayFunc(display);
 	glutKeyboardFunc(keyboard);
-
 	glutSwapBuffers();
 
 	glEnable(GL_BLEND); // attempt to smooth out points

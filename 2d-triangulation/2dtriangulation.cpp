@@ -45,10 +45,12 @@ struct Triangle {
 	Edge e1, e2, e3;
 };
 
+// Global (data) structures
 std::vector<Point> P(POINT_COUNT);
 std::vector<Edge> EdgeList(POINT_COUNT* (POINT_COUNT - 1) / 2);
 std::set<Edge> TriEdge;
 std::vector<Triangle> Triangles;
+std::set<Edge> ConvexHull;
 
 // a) generate N random unique points on the plane
 void initPoints() {
@@ -99,6 +101,100 @@ void drawPoints() {
 	printf("| Points: %i \n", POINT_COUNT);
 	glEnd();
 	glutSwapBuffers();
+}
+
+bool duplicateEdge(Edge L1, Edge L2) {
+	// Line Segment 1 (L1)
+	Point pointA = L1.p1;
+	int xa = pointA.x;
+	int ya = pointA.y;
+	Point pointB = L1.p2;
+	int xb = pointB.x;
+	int yb = pointB.y;
+
+	// Line Segment 2 (L2)
+	Point pointC = L2.p1;
+	int xc = pointC.x;
+	int yc = pointC.y;
+	Point pointD = L2.p2;
+	int xd = pointD.x;
+	int yd = pointD.y;
+
+	// if they share the exact same points, they are duplicates
+	if((xa == xc) && (ya == yc) && (xb == xd) && (yb == yd))	
+		return true;
+
+	return false;
+}
+
+bool checkConvexHull(Edge L1) {
+	// iterate through all line segments in the convex hull, then confirm if L1 is an edge of the convex hull (is part of the set ConvexHull)
+	for(Edge L2 : ConvexHull) {
+		if(duplicateEdge(L1, L2))	// if they are the same
+			return true;
+	} 
+
+	return false;
+}
+
+
+// initializes the set of Convex hulls based off all the edges in TriEdge
+void initConvexHull() {
+	// Using TriEdges and retrieving the size from TriEdge.size(), there should be (n*(n-1)/2 = approx(n*n)) amount of of edges 
+	// for each edge defined by pairs (Pi, Pj) of points in P (n*(n-1)/2 = approx(n*n) of them)
+	// compute signed (fast) distance d for all points(less Pi, Pj) from this edge
+	// if all points have same sign (>0, <0, =0), then that pair might define an edge
+	// Only add (Pi,Pj) if any point with d=0 is not in between these points (check X, Y between them)
+	// --> add edge (Pi, Pj) to convex hull
+}
+
+// Calculates all the triangles and adds them to the Triangle structure
+void calcTriangles() {
+	initConvexHull();
+	std::set <Edge> triangleDone;	// keep track of edges that form triangles
+
+	// Step 4:
+	for(Edge L1 : TriEdge) {
+
+		// initial edge we want to find shortest edges towards
+		Point pa = L1.p1;
+		Point pb = L1.p2;
+		int numTriangle = 0;
+		bool isConvexHull = false;	// "is part of the convex hull", initially assume that the edge is inside the convex hull
+
+		for(Edge L2 : TriEdge) {	// search through the set of edges; TriEdges is already sorted in increasing order by length
+			if(duplicateEdge(L1, L2)) 	// if the edges are complete duplicates, do not check
+				continue;
+
+			// next closest line segment
+			Point pc = L2.p1;
+			Point pd = L2.p2;
+
+			// Step a)
+			if (pa == pc || pa == pd || pb == pc || pb == pd) {
+                numTriangle++;
+                if (numTriangle == 2 || checkConvexHull(L1)) {
+                    triangleDone.insert(L1);
+                    break;
+                }
+            }
+
+			// Step b)
+			// For each edge in TriEdge, search through TriEdge for 2 edges that both respectively connect to Pa and Pb and is connected by Pc
+			// These points Pa Pb Pc are the points forming a triangle and is inserted into the Triangles set by Triangles.insert({Pa, Pb, Pc});
+			// is added to Triangle data structure
+
+			// Step c)
+			// For each new triangle containing 3 points (Pa, Pb, Pc), search through TriEdge to find another 2 edges that connect to Pa and Pb and is connected by Pd
+			// These points Pa Pb Pd are the points forming a 2nd triangle and is inserted into the Triangles set by Triangles.insert({Pa, Pb, Pd});
+			// is added to Triangle data structure
+		}
+	}
+
+	// Step d) : given that all the triangles edges to be removed from TriEdges is kepted inside the set triangleDone, we can perform the last step here
+	for(Edge e : triangleDone) {	// loop through all edges with triangles
+		TriEdge.erase(e);			// set.erase, targeted triangle edge
+	}
 }
 
 void calcTriEdges() {
@@ -226,9 +322,68 @@ void drawTriangles() {
 	glutSwapBuffers();
 }
 
+bool sharedEdge(Triangle t1, Triangle t2, Edge& shared_edge) {
+    // Check if any two edges are identical
+    if (duplicateEdge(t1.e1, t2.e1)) {
+        shared_edge = t1.e1;
+        return true;
+    }
+    if (duplicateEdge(t1.e1, t2.e2)) {
+        shared_edge = t1.e1;
+        return true;
+    }
+    if (duplicateEdge(t1.e1, t2.e3)) {
+        shared_edge = t1.e1;
+        return true;
+    }
+    if (duplicateEdge(t1.e2, t2.e1)) {
+        shared_edge = t1.e2;
+        return true;
+    }
+    if (duplicateEdge(t1.e2, t2.e2)) {
+        shared_edge = t1.e2;
+        return true;
+    }
+    if (duplicateEdge(t1.e2, t2.e3)) {
+        shared_edge = t1.e2;
+        return true;
+    }
+    if (duplicateEdge(t1.e3, t2.e1)) {
+        shared_edge = t1.e3;
+        return true;
+    }
+    if (duplicateEdge(t1.e3, t2.e2)) {
+        shared_edge = t1.e3;
+        return true;
+    }
+    if (duplicateEdge(t1.e3, t2.e3)) {
+        shared_edge = t1.e3;
+        return true;
+    }
+    // No shared edges found
+    return false;
+}
+
 // d) cleanup Implement the cleanup algorithm discussed in class
 void cleanup() {
+	bool change = true;
+	// repeatedly optimize each triangle 
+	while(change) {
+		// find 2 triangles that share an edge
+		for(int i = 0; i < Triangles.size(); i++) {
+			for(int j = i + 1;  j < Triangles.size(); j++) {
+				Triangle t1 = Triangles[i];
+				Triangle t2 = Triangles[j];
+				// determine the distance of d1 and d2:
+				// d1: the edge length of the shared edge between both triangles (L1 can be used here)
+				// d2: the edge length of the 2 points of both L1 & L2 that does not intersect at Pa or Pb endpoints (the opposite edge from d1)
 
+				// if: |d2| < |d1| AND the d1_edge and d2_edge are opposite sides of a line, then we found an optimized triangle to use
+				// else: 
+				// replace triangles 
+			}
+		}
+	}	
 }
 
 // prints controls to terminal
@@ -272,7 +427,7 @@ void keyboard(unsigned char key, int x, int y) {
 		glutPostRedisplay();
 		break;
 	case '4': // 4th step - cleanup
-		cleanup();
+		// cleanup();
 		drawTriangles();
 		glutPostRedisplay();
 		break;

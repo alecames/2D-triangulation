@@ -19,7 +19,7 @@
 const int WIDTH = 800;
 const int HEIGHT = 800;
 const float POINT_RADIUS = 6.0f;
-const int POINT_COUNT = 8; // "n-points", hardcoded for now, maybe we can ask the user how many they want; -/+ an amount.
+const int POINT_COUNT = 30;
 
 struct Point {
 	float x, y;
@@ -113,6 +113,17 @@ void initPoints() {
 		P[i] = p;
 		i++;
 	}
+}
+
+// formats the prints with the table edges
+void padprint(const char* str) {
+	int len = strlen(str);
+	int pad = 70 - len;
+	printf("| ");
+	printf("%s", str);
+	for (int i = 0; i < pad; i++)
+		printf(" ");
+	printf("|\n");
 }
 
 // e) generate lattice points
@@ -253,30 +264,17 @@ void drawEdges() {
 
 // c) triangle polygon extaction - extract triangle polygons from the edges
 void extractTriangles() {
-	// create triangles from the TriEdge set
+	// draw coloured triangles for each 3 edges
 	for (Edge e1 : TriEdge) {
 		for (Edge e2 : TriEdge) {
-			if (e1.p1 == e2.p1 && e1.p2 == e2.p2) {
-				continue;
-			}
-			if (e1.p1 == e2.p2 && e1.p2 == e2.p1) {
-				continue;
-			}
-			if (e1.p1 == e2.p1 && e1.p2 != e2.p2) {
-				Triangle t = { e1, e2 };
-				Triangles.push_back(t);
-			}
-			if (e1.p1 == e2.p2 && e1.p2 != e2.p1) {
-				Triangle t = { e1, e2 };
-				Triangles.push_back(t);
-			}
-			if (e1.p2 == e2.p1 && e1.p1 != e2.p2) {
-				Triangle t = { e1, e2 };
-				Triangles.push_back(t);
-			}
-			if (e1.p2 == e2.p2 && e1.p1 != e2.p1) {
-				Triangle t = { e1, e2 };
-				Triangles.push_back(t);
+			for (Edge e3 : TriEdge) {
+				// check if e1, e2, e3 form a triangle
+				if (e1.p1 == e2.p1 && e1.p2 == e3.p1 && e2.p2 == e3.p2) {
+					Triangle t = { e1, e2, e3 };
+					Triangles.push_back(t);
+					// resize traignle vector
+					Triangles.resize(Triangles.size() + 1);
+				}
 			}
 		}
 	}
@@ -337,11 +335,13 @@ void keyboard(unsigned char key, int x, int y) {
 		glutPostRedisplay();
 		break;
 	case '2': // 2nd step - generate edges
+		TriEdge.clear();
 		calcTriEdges();
 		drawEdges();
 		glutPostRedisplay();
 		break;
 	case '3': // 3rd step - extract triangles
+		Triangles.clear();
 		extractTriangles();
 		drawTriangles();
 		glutPostRedisplay();

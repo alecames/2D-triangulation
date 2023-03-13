@@ -19,10 +19,10 @@
 const int WIDTH = 800;
 const int HEIGHT = 800;
 const float POINT_RADIUS = 6.0f;
-const int POINT_COUNT = 4; // "n-points", hardcoded for now, maybe we can ask the user how many they want; -/+ an amount.
+const int POINT_COUNT = 8; // "n-points", hardcoded for now, maybe we can ask the user how many they want; -/+ an amount.
 
 struct Point {
-	int x, y;
+	float x, y;
 	bool operator==(const Point& other) const { return (x == other.x) && (y == other.y); }
 	bool operator!=(const Point& other) const { return x != other.x || y != other.y; }
 	bool operator<(const Point& other) const { return x < other.x || (x == other.x && y < other.y); }
@@ -94,7 +94,7 @@ struct Edge {
 		if (y < std::min(other.p1.y, other.p2.y) || y > std::max(other.p1.y, other.p2.y))
 			return Point{ -1, -1 };
 
-		return Point{ int(x), int(y) };
+		return Point{ float(x), float(y) };
 	}
 };
 
@@ -160,11 +160,12 @@ void drawPoints() {
 
 // ! temp function for debugging
 void printEdge(const Edge& e) {
-    printf("\tp1.x: %i    p1.y: %i\n", e.p1.x, e.p1.y);
-    printf("\tp2.x: %i    p2.y: %i\n", e.p2.x, e.p2.y);
+    printf("\tp1.x: %f    p1.y: %f\n", e.p1.x, e.p1.y);
+    printf("\tp2.x: %f    p2.y: %f\n", e.p2.x, e.p2.y);
     // printf("\tlength: %d\n", e.length);
 }
 
+// ! not in use
 // returns true if 2 line segments intersect at their start/endpoints
 bool atEndPoint(int xa, int ya, int xb, int yb, int xc, int yc, int xd, int yd) {
 	if (xa == xc && ya == yc) { // check if L1 start point matches L2 start point
@@ -182,13 +183,109 @@ bool atEndPoint(int xa, int ya, int xb, int yb, int xc, int yc, int xd, int yd) 
     return false; // no end points matched
 }
 
+void calcTriangles() {
+	// Step 4:
+	
+}
+
+void calcTriEdges() {
+	// Step 2/3: iterate through all known edges, and for all edges that do not intersect with the set TriEdge, is added to that very same set. 
+
+	int numEdges = EdgeList.size();
+	bool intersection;
+	TriEdge.clear();
+
+	for (int i = 0; i < numEdges; i++) {	// Not using for-each so we can keep track of iterations
+		Edge L1 = EdgeList[i];
+		intersection = false; // initially assume edge encounters no intersections
+		// printf("==== FOR [i : %i] ====\n", i);
+		
+		// compare L1 with each L2 in Tri Edge
+		for (Edge L2 : TriEdge) {
+			// if (L1 == L2) {	// * find duplicate
+			// 	// printf("Duplicate: L1 == L2 at [i: %i]\n", i);	// ! debugging
+			// 	continue;
+			// }
+
+			// Line Segment 1 (L1)
+			Point pointA = L1.p1;
+			float xa = pointA.x;
+			float ya = pointA.y;
+			Point pointB = L1.p2;
+			float xb = pointB.x;
+			float yb = pointB.y;
+
+			// Line Segment 2 (L2)
+			Point pointC = L2.p1;
+			float xc = pointC.x;
+			float yc = pointC.y;
+			Point pointD = L2.p2;
+			float xd = pointD.x;
+			float yd = pointD.y;
+
+			setx.insert(xa);
+			setx.insert(xb);
+			setx.insert(xc);
+			setx.insert(xd);
+
+			sety.insert(ya);
+			sety.insert(yb);
+			sety.insert(yc);
+			sety.insert(yd);
+
+
+			float D = ((xb - xa) * (yd - yc)) - ((yb - ya) * (xd - xc));
+			// printf("D: %f\n", D);
+
+			if(D == 0) {	// if parallel, we skip
+				printf("Lines are parallel: D == 0\n");
+				continue;
+			}
+
+			float ta = (((xc - xa) * (yd - yc)) - ((yc - ya) * (xd - xc))) / D;
+			float tb = (xa - xc + (xb - xa) * ta) / (xd - xc);
+			// printf("[ta: %f]  [tb: %f]\n", ta, tb);
+
+			// printf("L1");
+			// printEdge(L1);
+			// printf("L2");
+			// printEdge(L2);
+
+			if((ta == 0 || ta == 1) && (tb == 0 || tb == 1)) {
+    			// printf("Intersects at start/end point. ADD EDGE\n");
+			}
+			else if((ta >= 0 && ta <= 1) && (tb >= 0 && tb <= 1)) {
+				// printf("[ta: %f]  [tb: %f]\n", ta, tb);
+				// printf("L1");
+				// printEdge(L1);
+				// printf("L2");
+				// printEdge(L2);
+				// printf("Intersects somewhere (not start/endpoint). IGNORE EDGE\n");
+				intersection = true;
+			}
+
+		} // for-each
+		if (!intersection) { // if there is no intersection, then we can add it to TriEdge
+			TriEdge.insert(L1);
+		}
+		// printf("\n");
+
+	} // for
+
+	// b) print number of TriEdges
+	printf("# of TriEdges: %i\n", TriEdge.size());
+	// Step 2/3: done
+
+	calcTriangles();
+}
+
 // b) naive triangulation algorithm
 void calcEdges() {
 	// calculate length, save to edge list;
 	int numEdges = 0;
 
 	// Step 1: find all possible edges
-	printf("\t\t\t<> Finding ALL possible edges <>\n");
+	// printf("\t\t\t<> Finding ALL possible edges <>\n");
 	for (int i = 0; i < POINT_COUNT; i++) {
 		for (int j = i + 1; j < POINT_COUNT; j++) {
 			// calculate the distance between the two points
@@ -212,85 +309,7 @@ void calcEdges() {
 	std::sort(EdgeList.begin(), EdgeList.end());	// sort edge vector in order of least-greatest edge length (takes nlogn time)
 	// Step 1: done
 
-	// TODO: Step 2: iterate through all known edges, and for all edges that do not intersect with the set TriEdge, is added to that very same set. 
-	printf("\n<> Insert all Edges with no intersections into TriEdges <>\n");
-	bool intersection;
-	TriEdge.clear();
-
-	for (int i = 0; i < numEdges; i++) {	// Not using for-each so we can keep track of iterations
-		Edge L1 = EdgeList[i];
-		intersection = false; // initially assume edge encounters no intersections
-		printf("==== FOR [i : %i] ====\n", i);
-		
-		// compare L1 with each L2 in Tri Edge
-		for (Edge L2 : TriEdge) {
-			// if (L1 == L2) {	// * find duplicate
-			// 	// printf("Duplicate: L1 == L2 at [i: %i]\n", i);	// ! debugging
-			// 	continue;
-			// }
-
-			// Line Segment 1 (L1)
-			Point pointA = L1.p1;
-			int xa = pointA.x;
-			int ya = pointA.y;
-			Point pointB = L1.p2;
-			int xb = pointB.x;
-			int yb = pointB.y;
-
-			// Line Segment 2 (L2)
-			Point pointC = L2.p1;
-			int xc = pointC.x;
-			int yc = pointC.y;
-			Point pointD = L2.p2;
-			int xd = pointD.x;
-			int yd = pointD.y;
-
-			float D = ((xb - xa) * (yd - yc)) - ((yb - ya) * (xd - xc));
-			printf("D: %f\n", D);
-
-			if(D == 0) {	// if parallel, we skip
-				printf("D == 0\n");
-				continue;
-			}
-
-			float ta = (((xc - xa) * (yd - yc)) - ((yc - ya) * (xd - xc))) / D;
-			float tb = (xa - xc + (xb - xa) * ta) / (xd - xc);
-			printf("[ta: %f]  [tb: %f]\n", ta, tb);
-
-			printf("L1");
-			printEdge(L1);
-			printf("L2");
-			printEdge(L2);
-
-			if((ta == 0 || ta == 1) && (tb == 0 || tb == 1)) {
-    			printf("Intersects at start/end point. ADD EDGE\n");
-			}
-			else if((ta >= 0 && ta <= 1) && (tb >= 0 && tb <= 1)) {
-				printf("Intersects somewhere (not start/endpoint). IGNORE EDGE\n");
-				intersection = true;
-				break;
-			}
-			else { 
-				printf("Does not intersect or is connected at all. ADD EDGE\n");
-			}
-
-		} // for-each
-		if (!intersection) { // if there is no intersection, then we can add it to TriEdge
-			TriEdge.insert(L1);
-		}
-		printf("\n");
-
-	} // for
-
-	// b) print number of TriEdges
-	printf("# of TriEdges: %i\n", TriEdge.size());
-
-	// printf("ALL TriEdges: \n");
-	// for (const Edge e : TriEdge) {
-	// 	printEdge(e);
-	// 	printf("\n");
-	// }
-	// printf("\n");
+	calcTriEdges();
 }
 
 // b) render the edges

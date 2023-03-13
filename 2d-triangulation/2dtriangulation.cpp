@@ -322,6 +322,7 @@ void drawTriangles() {
 	glutSwapBuffers();
 }
 
+// Function to help determine if 2 triangles share the same edge
 bool sharedEdge(Triangle t1, Triangle t2, Edge& shared_edge) {
     // Check if any two edges are identical
     if (duplicateEdge(t1.e1, t2.e1)) {
@@ -361,6 +362,7 @@ bool sharedEdge(Triangle t1, Triangle t2, Edge& shared_edge) {
         return true;
     }
     // No shared edges found
+	shared_edge = t1.e1;
     return false;
 }
 
@@ -374,13 +376,21 @@ void cleanup() {
 			for(int j = i + 1;  j < Triangles.size(); j++) {
 				Triangle t1 = Triangles[i];
 				Triangle t2 = Triangles[j];
+
+				Edge shared_edge;
+				int d1, d2;
 				// determine the distance of d1 and d2:
 				// d1: the edge length of the shared edge between both triangles (L1 can be used here)
+				// if: there exists a sharedEdge() between t1 and t2, then we can obtain what the shared edge is exactly and use .length to retrieve the length for d1
+
 				// d2: the edge length of the 2 points of both L1 & L2 that does not intersect at Pa or Pb endpoints (the opposite edge from d1)
+				// if: obtain the 2 points that do not have an edge together and measure the length of it, which will then become the value for d2
 
 				// if: |d2| < |d1| AND the d1_edge and d2_edge are opposite sides of a line, then we found an optimized triangle to use
-				// else: 
-				// replace triangles 
+				// else: change = false as there are no more optimizations to make 
+				change = false;
+
+				// replace triangles so that the shared edge is instead the same edge used to obtain d2, and the previous shared edge is gone
 			}
 		}
 	}	
@@ -427,7 +437,7 @@ void keyboard(unsigned char key, int x, int y) {
 		glutPostRedisplay();
 		break;
 	case '4': // 4th step - cleanup
-		// cleanup();
+		cleanup();
 		drawTriangles();
 		glutPostRedisplay();
 		break;

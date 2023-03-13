@@ -291,11 +291,11 @@ void cleanup() {
 
 // prints controls to terminal
 void showcmds() {
-	printf("|-----------------------------------------------------------------------|\n");
-	printf("| H: Help                  2D   TRIANGULATION             ESC / Q: Quit |\n");
-	printf("|-----------------------------------------------------------------------|\n");
-	printf("| 1: Draw Points   | 2: Draw Edges   | 3: Draw Polygons   | 4: Clean Up |\n");
-	printf("|-----------------------------------------------------------------------|\n");
+	printf("|------------------------------------------------------------------------------|\n");
+	printf("| H: Help                      2D   TRIANGULATION                ESC / Q: Quit |\n");
+	printf("|------------------------------------------------------------------------------|\n");
+	printf("| 1: Draw Points | 2: Draw Edges | 3: Draw Polygons | 4: Clean Up | L: Lattice |\n");
+	printf("|------------------------------------------------------------------------------|\n");
 }
 
 // handles keyboard events

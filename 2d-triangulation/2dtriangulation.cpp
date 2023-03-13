@@ -165,27 +165,9 @@ void printEdge(const Edge& e) {
     // printf("\tlength: %d\n", e.length);
 }
 
-// ! not in use
-// returns true if 2 line segments intersect at their start/endpoints
-bool atEndPoint(int xa, int ya, int xb, int yb, int xc, int yc, int xd, int yd) {
-	if (xa == xc && ya == yc) { // check if L1 start point matches L2 start point
-        return true;
-    }
-    if (xa == xd && ya == yd) { // check if L1 start point matches L2 end point
-        return true;
-    }
-    if (xb == xc && yb == yc) { // check if L1 end point matches L2 start point
-        return true;
-    }
-    if (xb == xd && yb == yd) { // check if L1 end point matches L2 end point
-        return true;
-    }
-    return false; // no end points matched
-}
-
 void calcTriangles() {
 	// Step 4:
-	
+
 }
 
 void calcTriEdges() {
@@ -222,17 +204,6 @@ void calcTriEdges() {
 			Point pointD = L2.p2;
 			float xd = pointD.x;
 			float yd = pointD.y;
-
-			setx.insert(xa);
-			setx.insert(xb);
-			setx.insert(xc);
-			setx.insert(xd);
-
-			sety.insert(ya);
-			sety.insert(yb);
-			sety.insert(yc);
-			sety.insert(yd);
-
 
 			float D = ((xb - xa) * (yd - yc)) - ((yb - ya) * (xd - xc));
 			// printf("D: %f\n", D);

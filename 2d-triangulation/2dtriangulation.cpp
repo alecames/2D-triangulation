@@ -19,7 +19,7 @@
 const int WIDTH = 800;
 const int HEIGHT = 800;
 const float POINT_RADIUS = 6.0f;
-const int POINT_COUNT = 40; // "n-points", hardcoded for now, maybe we can ask the user how many they want; -/+ an amount.
+const int POINT_COUNT = 100; // "n-points", hardcoded for now, maybe we can ask the user how many they want; -/+ an amount.
 
 struct Point {
 	int x, y;
@@ -128,11 +128,20 @@ void initPoints() {
 
 // e) generate lattice points
 void initLatticePoints() {
-	for (int i = 0; i < POINT_COUNT; i++) {
-		int x = i % WIDTH;
-		int y = i / WIDTH;
-		P[i] = { x, y };
-	}
+    int numRows = std::sqrt(POINT_COUNT * HEIGHT / WIDTH);  // number of rows in the grid
+    int numCols = POINT_COUNT / numRows;  // number of columns in the grid
+    int xgap = WIDTH / numCols;  // spacing between columns
+    int ygap = HEIGHT / numRows;  // spacing between rows
+    
+    // generates lattice points
+    int index = 0;
+    for (int i = 0; i < numRows; i++) {
+        for (int j = 0; j < numCols; j++) {
+            int x = (j + 0.5) * xgap;
+            int y = (i + 0.5) * ygap;
+            P[index++] = { x, y };
+        }
+    }
 }
 
 // a) render these points
@@ -144,6 +153,7 @@ void drawPoints() {
 	for (Point& p : P) {
 		glVertex2i(p.x, p.y);
 	}
+	printf("Points: %i \n", POINT_COUNT);
 	glEnd();
 	glutSwapBuffers();
 }
@@ -172,8 +182,6 @@ void calcEdges() {
 			numEdges++;
 		}
 	}
-	// b) count and print the number of edges created
-	printf("# of Edges: %i\n", numEdges);
 
 	// sort edge vector in order of least-greatest edge length (takes nlogn time)
 	std::sort(EdgeList.begin(), EdgeList.end());
@@ -238,6 +246,8 @@ void drawEdges() {
 		glVertex2i(e.p1.x, e.p1.y);
 		glVertex2i(e.p2.x, e.p2.y);
 	}
+	// b) count and print the number of edges created
+	printf("Edges: %i \n", TriEdge.size());
 	glEnd();
 	glutSwapBuffers();
 }
@@ -272,7 +282,7 @@ void extractTriangles() {
 // c) render the triangles as solid polygons
 void drawTriangles() {
 	glClear(GL_COLOR_BUFFER_BIT);
-	glLineWidth(2.0f);
+	glLineWidth(0.0f);
 	// get random color
 	glBegin(GL_TRIANGLES);
 	for (const Triangle& t : Triangles) {
@@ -284,6 +294,8 @@ void drawTriangles() {
 		glVertex2i(t.p2.x, t.p2.y);
 		glVertex2i(t.p3.x, t.p3.y);
 	}
+	// c) count and print the number of triangles created
+	printf("Triangles: %i \n", Triangles.size());
 	glEnd();
 	glutSwapBuffers();
 }
@@ -298,7 +310,7 @@ void showcmds() {
 	printf("|-----------------------------------------------------------------------|\n");
 	printf("| H: Help                  2D   TRIANGULATION             ESC / Q: Quit |\n");
 	printf("|-----------------------------------------------------------------------|\n");
-	printf("| 1: Generate Points | 2: Draw Edges | 3: Create Polygons | 4: Clean Up |\n");
+	printf("| 1: Draw Points   | 2: Draw Edges   | 3: Draw Polygons   | 4: Clean Up |\n");
 	printf("|-----------------------------------------------------------------------|\n");
 }
 
@@ -312,7 +324,8 @@ void keyboard(unsigned char key, int x, int y) {
 		exit(0);
 		break;
 	case '1': // 1st step - generate points
-		initPoints();
+		// initPoints(); 
+		initLatticePoints();
 		drawPoints();
 		glutPostRedisplay();
 		break;

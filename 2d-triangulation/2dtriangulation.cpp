@@ -36,6 +36,9 @@ struct Edge {
 	unsigned int length;
 	bool operator<(const Edge& other) const { return length < other.length; }
 	bool operator>(const Edge& other) const { return length > other.length; }
+	bool connected(const Edge& other) const {
+		return (p1 == other.p1 || p1 == other.p2 || p2 == other.p1 || p2 == other.p2);
+	}
 };
 
 struct Triangle {

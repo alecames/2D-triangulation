@@ -333,7 +333,6 @@ void keyboard(unsigned char key, int x, int y) {
 		drawPoints();
 		glutPostRedisplay();
 		break;
-
 	case '2': // 2nd step - generate edges
 		calcEdges();
 		drawEdges();

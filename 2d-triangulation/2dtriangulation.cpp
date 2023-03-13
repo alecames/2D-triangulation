@@ -324,11 +324,16 @@ void keyboard(unsigned char key, int x, int y) {
 		exit(0);
 		break;
 	case '1': // 1st step - generate points
-		// initPoints(); 
+		initPoints(); 
+		drawPoints();
+		glutPostRedisplay();
+		break;
+	case 't': // 1st step - generate points (lattice)
 		initLatticePoints();
 		drawPoints();
 		glutPostRedisplay();
 		break;
+
 	case '2': // 2nd step - generate edges
 		calcEdges();
 		drawEdges();

@@ -245,28 +245,33 @@ void calcEdges() {
 			int xd = pointD.x;
 			int yd = pointD.y;
 
-			int D = ((xb - xa) * (yd - yc)) - ((yb - ya) * (xd - xc));
+			float D = ((xb - xa) * (yd - yc)) - ((yb - ya) * (xd - xc));
+			printf("D: %f\n", D);
 
-			if(D == 0) {
+			if(D == 0) {	// if parallel, we skip
 				printf("D == 0\n");
 				continue;
 			}
-			
-			int ta = (((xc - xa) * (yd - yc)) - ((yc - ya) * (xd - xc))) / D;
-			int tb = (xa - xc + (xb - xa) * ta) / (xd - xc);
-			printf("[ta: %i]\t[tb: %i]\n", ta, tb);
 
-			// Since we already check D == 0, the lines cannot be vertical
-			if ((ta >= 0 && ta <= 1) && (tb >= 0 && tb <= 1)) {
-				printf("Intersection: TriEdge not added.\n");	// ! debugging: intersection can occur at endpoints
-				if(atEndPoint(xa, ya, xb, yb, xc, yc, xd, yd)) {
-					printf("Start/Endpoints meet, TriEdge added.\n");
-					break;
-				}
-				printf("REMOVED:\n");
-				printEdge(L1);
+			float ta = (((xc - xa) * (yd - yc)) - ((yc - ya) * (xd - xc))) / D;
+			float tb = (xa - xc + (xb - xa) * ta) / (xd - xc);
+			printf("[ta: %f]  [tb: %f]\n", ta, tb);
+
+			printf("L1");
+			printEdge(L1);
+			printf("L2");
+			printEdge(L2);
+
+			if((ta == 0 || ta == 1) && (tb == 0 || tb == 1)) {
+    			printf("Intersects at start/end point. ADD EDGE\n");
+			}
+			else if((ta >= 0 && ta <= 1) && (tb >= 0 && tb <= 1)) {
+				printf("Intersects somewhere (not start/endpoint). IGNORE EDGE\n");
 				intersection = true;
 				break;
+			}
+			else { 
+				printf("Does not intersect or is connected at all. ADD EDGE\n");
 			}
 
 		} // for-each
@@ -294,7 +299,7 @@ void drawEdges() {
 	glColor3f(0.3, 0.72, 0.56);
 	glLineWidth(2.0f);
 	glBegin(GL_LINES);
-	for (const Edge e : EdgeList) {
+	for (const Edge e : TriEdge) {
 		glVertex2i(e.p1.x, e.p1.y);
 		glVertex2i(e.p2.x, e.p2.y);
 	}

@@ -10,7 +10,7 @@ Alec Ames 6843577 && Julian Geronimo 6756597
 
 - Install Visual Studio 
 - Open the solution file `2dtriangulation.sln`
-- Build the solution or hit F5 (Run without debugging) to run OR run the executable `2dtriangulation.exe` in the `Debug` folder
+- Build the solution or hit F5 (Run without debugging) to run 
 
 ## Commands and controls
 - `1`: Generate and draw a random set of points

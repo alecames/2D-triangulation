@@ -11,44 +11,54 @@
 #include <set>
 
 // COSC 3P98 - Computer Graphics - Assignment 2
-// This program will preform 2D triangulation on a set of points
+// This program will perform 2D triangulation on a set of points
+// Alec Ames 				Student #: 6843577
+// Julian Ellis Geronimo 	Student #: 6756597
+// Due Date: March 13th, 2023
 
-// Alec Ames 		6843577
-// Julian Geronimo 	6756597
 
+const int WIDTH = 800;		// window width
+const int HEIGHT = 800;		// window height
+const float POINT_RADIUS = 6.0f;	// size of the rendered dots/points 
+const int POINT_COUNT = 30;			// number of points to render onto the window
 
-const int WIDTH = 800;
-const int HEIGHT = 800;
-const float POINT_RADIUS = 6.0f;
-const int POINT_COUNT = 30;
-
+// A point contains an (x,y) to determine their placement on the window
 struct Point {
 	float x, y;
+
+	// boolean operators 
 	bool operator==(const Point& other) const { return (x == other.x) && (y == other.y); }
 	bool operator!=(const Point& other) const { return x != other.x || y != other.y; }
 	bool operator<(const Point& other) const { return x < other.x || (x == other.x && y < other.y); }
 	bool operator>(const Point& other) const { return x > other.x || (x == other.x && y > other.y); }
 };
 
+// A line segment that contains 2 points (struct) that represent the start and end points, as well as the length of the line between the 2 points
 struct Edge {
 	Point p1;
 	Point p2;
 	unsigned int length;
+
+	// boolean operators
 	bool operator<(const Edge& other) const { return length < other.length; }
 	bool operator>(const Edge& other) const { return length > other.length; }
+	// function that checks if 2 Edges are connected by their start/end points
 	bool connected(const Edge& other) const {
 		return (p1 == other.p1 || p1 == other.p2 || p2 == other.p1 || p2 == other.p2);
 	}
 };
 
+// A triangle is comprised of 3 edges 
 struct Triangle {
 	Edge e1, e2, e3;
 };
 
-std::vector<Point> P(POINT_COUNT);
-std::vector<Edge> EdgeList(POINT_COUNT* (POINT_COUNT - 1) / 2);
+// Global (data) structures
+std::vector<Point> P(POINT_COUNT);	// vector to hold the specified number of points to be rendered
+std::vector<Edge> EdgeList(POINT_COUNT* (POINT_COUNT - 1) / 2);	// 
 std::set<Edge> TriEdge;
 std::vector<Triangle> Triangles;
+std::set<Edge> ConvexHull;
 
 // a) generate N random unique points on the plane
 void initPoints() {
@@ -101,10 +111,105 @@ void drawPoints() {
 	glutSwapBuffers();
 }
 
+// returns if 2 edges are exact duplicates of each other (different if they are connected to each other)
+bool duplicateEdge(Edge L1, Edge L2) {
+	// Line Segment 1 (L1)
+	Point pointA = L1.p1;
+	int xa = pointA.x;
+	int ya = pointA.y;
+	Point pointB = L1.p2;
+	int xb = pointB.x;
+	int yb = pointB.y;
+
+	// Line Segment 2 (L2)
+	Point pointC = L2.p1;
+	int xc = pointC.x;
+	int yc = pointC.y;
+	Point pointD = L2.p2;
+	int xd = pointD.x;
+	int yd = pointD.y;
+
+	// if they share the exact same points, they are duplicates
+	if((xa == xc) && (ya == yc) && (xb == xd) && (yb == yd))	
+		return true;
+
+	return false;
+}
+
+// determines if the edge in the argument (L1) is within the set of convex hull boundary edges
+bool checkConvexHull(Edge L1) {
+	// iterate through all line segments in the convex hull, then confirm if L1 is an edge of the convex hull (is part of the set ConvexHull)
+	for(Edge L2 : ConvexHull) {
+		if(duplicateEdge(L1, L2))	// if L1 and convex hull boundary edge L2, are the exact same
+			return true;			// L1 is in convex hull
+	} 
+	return false;					// L1 is not in convex hull
+}
+
+
+// initializes the set of Convex hulls based off all the edges in TriEdge
+void initConvexHull() {
+	// Using TriEdges and retrieving the size from TriEdge.size(), there should be (n*(n-1)/2 = approx(n*n)) amount of of edges 
+	// for each edge defined by pairs (Pi, Pj) of points in P (n*(n-1)/2 = approx(n*n) of them)
+	// compute signed (fast) distance d for all points(less Pi, Pj) from this edge
+	// if all points have same sign (>0, <0, =0), then that pair might define an edge
+	// Only add (Pi,Pj) if any point with d=0 is not in between these points (check X, Y between them)
+	// --> add edge (Pi, Pj) to convex hull
+}
+
+// Calculates all the triangles and adds them to the Triangle structure
+void calcTriangles() {
+	initConvexHull();
+	std::set <Edge> triangleDone;	// keep track of edges that form triangles
+
+	// Step 4:
+	for(Edge L1 : TriEdge) {
+
+		// initial edge we want to find shortest edges towards
+		Point pa = L1.p1;
+		Point pb = L1.p2;
+		int numTriangle = 0;
+		bool isConvexHull = false;	// "is part of the convex hull", initially assume that the edge is inside the convex hull
+
+		for(Edge L2 : TriEdge) {	// search through the set of edges; TriEdges is already sorted in increasing order by length
+			if(duplicateEdge(L1, L2)) 	// if the edges are complete duplicates, do not check
+				continue;
+
+			// next closest line segment
+			Point pc = L2.p1;
+			Point pd = L2.p2;
+
+			// Step a)
+			if (pa == pc || pa == pd || pb == pc || pb == pd) {
+                numTriangle++;
+                if (numTriangle == 2 || checkConvexHull(L1)) {
+                    triangleDone.insert(L1);
+                    break;
+                }
+            }
+
+			// Step b)
+			// For each edge in TriEdge, search through TriEdge for 2 edges that both respectively connect to Pa and Pb and is connected by Pc
+			// These points Pa Pb Pc are the points forming a triangle and is inserted into the Triangles set by Triangles.insert({Pa, Pb, Pc});
+			// is added to Triangle data structure
+
+			// Step c)
+			// For each new triangle containing 3 points (Pa, Pb, Pc), search through TriEdge to find another 2 edges that connect to Pa and Pb and is connected by Pd
+			// These points Pa Pb Pd are the points forming a 2nd triangle and is inserted into the Triangles set by Triangles.insert({Pa, Pb, Pd});
+			// is added to Triangle data structure
+		}
+	}
+
+	// Step d) : given that all the triangles edges to be removed from TriEdges is kepted inside the set triangleDone, we can perform the last step here
+	for(Edge e : triangleDone) {	// loop through all edges with triangles
+		TriEdge.erase(e);			// set.erase, targeted triangle edge
+	}
+}
+
+// Step 1: calculates the number of edges based on the number 
 void calcTriEdges() {
-	// Step 2/3: iterate through all known edges, and for all edges that do not intersect with the set TriEdge, is added to that very same set. 
-	int numEdges = 0;
 	// Step 1: find all possible edges
+	int numEdges = 0;
 	for (int i = 0; i < POINT_COUNT; i++) {
 		for (int j = i + 1; j < POINT_COUNT; j++) {
 			// calculate the distance between the two points
@@ -129,6 +234,7 @@ void calcTriEdges() {
 	bool intersection;
 	TriEdge.clear();
 
+	// Step 2/3: iterate through all known edges, and for all edges that do not intersect with the set TriEdge, is added to that very same set. 
 	for (int i = 0; i < numEdges; i++) { // Not using for-each so we can keep track of iterations
 		Edge L1 = EdgeList[i];
 		intersection = false; // initially assume edge encounters no intersections
@@ -154,15 +260,17 @@ void calcTriEdges() {
 
 			float D = ((xb - xa) * (yd - yc)) - ((yb - ya) * (xd - xc));
 
-			// if parallel, we skip
+			// if true, then it is parallel, we skip
 			if (D == 0) continue;
 
 			float ta = (((xc - xa) * (yd - yc)) - ((yc - ya) * (xd - xc))) / D;
 			float tb = (xa - xc + (xb - xa) * ta) / (xd - xc);
 
 			if ((ta == 0 || ta == 1) && (tb == 0 || tb == 1)) {
+				// means the edges are intserected/connected by their endpoints
 			}
 			else if ((ta >= 0 && ta <= 1) && (tb >= 0 && tb <= 1)) {
+				// edges are intersected by some point that ISN'T their endpoints
 				intersection = true;
 				break;
 			}
@@ -226,9 +334,78 @@ void drawTriangles() {
 	glutSwapBuffers();
 }
 
+// Function to help determine if 2 triangles share the same edge
+bool sharedEdge(Triangle t1, Triangle t2, Edge& shared_edge) {
+    // Check if any two edges are identical
+    if (duplicateEdge(t1.e1, t2.e1)) {
+        shared_edge = t1.e1;
+        return true;
+    }
+    if (duplicateEdge(t1.e1, t2.e2)) {
+        shared_edge = t1.e1;
+        return true;
+    }
+    if (duplicateEdge(t1.e1, t2.e3)) {
+        shared_edge = t1.e1;
+        return true;
+    }
+    if (duplicateEdge(t1.e2, t2.e1)) {
+        shared_edge = t1.e2;
+        return true;
+    }
+    if (duplicateEdge(t1.e2, t2.e2)) {
+        shared_edge = t1.e2;
+        return true;
+    }
+    if (duplicateEdge(t1.e2, t2.e3)) {
+        shared_edge = t1.e2;
+        return true;
+    }
+    if (duplicateEdge(t1.e3, t2.e1)) {
+        shared_edge = t1.e3;
+        return true;
+    }
+    if (duplicateEdge(t1.e3, t2.e2)) {
+        shared_edge = t1.e3;
+        return true;
+    }
+    if (duplicateEdge(t1.e3, t2.e3)) {
+        shared_edge = t1.e3;
+        return true;
+    }
+    // No shared edges found
+	shared_edge = t1.e1;
+    return false;
+}
+
 // d) cleanup Implement the cleanup algorithm discussed in class
 void cleanup() {
+	bool change = true;
+	// repeatedly optimize each triangle 
+	while(change) {
+		// find 2 triangles that share an edge
+		for(int i = 0; i < Triangles.size(); i++) {
+			for(int j = i + 1;  j < Triangles.size(); j++) {
+				Triangle t1 = Triangles[i];
+				Triangle t2 = Triangles[j];
 
+				Edge shared_edge;
+				int d1, d2;
+				// determine the distance of d1 and d2:
+				// d1: the edge length of the shared edge between both triangles (L1 can be used here)
+				// if: there exists a sharedEdge() between t1 and t2, then we can obtain what the shared edge is exactly and use .length to retrieve the length for d1
+
+				// d2: the edge length of the 2 points of both L1 & L2 that does not intersect at Pa or Pb endpoints (the opposite edge from d1)
+				// if: obtain the 2 points that do not have an edge together and measure the length of it, which will then become the value for d2
+
+				// if: |d2| < |d1| AND the d1_edge and d2_edge are opposite sides of a line, then we found an optimized triangle to use
+				// else: change = false as there are no more optimizations to make 
+				change = false;
+
+				// replace triangles so that the shared edge is instead the same edge used to obtain d2, and the previous shared edge is gone
+			}
+		}
+	}	
 }
 
 // prints controls to terminal

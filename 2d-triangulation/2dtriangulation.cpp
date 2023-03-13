@@ -11,43 +11,51 @@
 #include <set>
 
 // COSC 3P98 - Computer Graphics - Assignment 2
-// This program will preform 2D triangulation on a set of points
+// This program will perform 2D triangulation on a set of points
+// Alec Ames 				Student #: 6843577
+// Julian Ellis Geronimo 	Student #: 6756597
+// Due Date: March 13th, 2023
 
-// Alec Ames 		6843577
-// Julian Geronimo 	6756597
 
+const int WIDTH = 800;		// window width
+const int HEIGHT = 800;		// window height
+const float POINT_RADIUS = 6.0f;	// size of the rendered dots/points 
+const int POINT_COUNT = 30;			// number of points to render onto the window
 
-const int WIDTH = 800;
-const int HEIGHT = 800;
-const float POINT_RADIUS = 6.0f;
-const int POINT_COUNT = 30;
-
+// A point contains an (x,y) to determine their placement on the window
 struct Point {
 	float x, y;
+
+	// boolean operators 
 	bool operator==(const Point& other) const { return (x == other.x) && (y == other.y); }
 	bool operator!=(const Point& other) const { return x != other.x || y != other.y; }
 	bool operator<(const Point& other) const { return x < other.x || (x == other.x && y < other.y); }
 	bool operator>(const Point& other) const { return x > other.x || (x == other.x && y > other.y); }
 };
 
+// A line segment that contains 2 points (struct) that represent the start and end points, as well as the length of the line between the 2 points
 struct Edge {
 	Point p1;
 	Point p2;
 	unsigned int length;
+
+	// boolean operators
 	bool operator<(const Edge& other) const { return length < other.length; }
 	bool operator>(const Edge& other) const { return length > other.length; }
+	// function that checks if 2 Edges are connected by their start/end points
 	bool connected(const Edge& other) const {
 		return (p1 == other.p1 || p1 == other.p2 || p2 == other.p1 || p2 == other.p2);
 	}
 };
 
+// A triangle is comprised of 3 edges 
 struct Triangle {
 	Edge e1, e2, e3;
 };
 
 // Global (data) structures
-std::vector<Point> P(POINT_COUNT);
-std::vector<Edge> EdgeList(POINT_COUNT* (POINT_COUNT - 1) / 2);
+std::vector<Point> P(POINT_COUNT);	// vector to hold the specified number of points to be rendered
+std::vector<Edge> EdgeList(POINT_COUNT* (POINT_COUNT - 1) / 2);	// 
 std::set<Edge> TriEdge;
 std::vector<Triangle> Triangles;
 std::set<Edge> ConvexHull;
@@ -103,6 +111,7 @@ void drawPoints() {
 	glutSwapBuffers();
 }
 
+// returns if 2 edges are exact duplicates of each other (different if they are connected to each other)
 bool duplicateEdge(Edge L1, Edge L2) {
 	// Line Segment 1 (L1)
 	Point pointA = L1.p1;
@@ -127,14 +136,14 @@ bool duplicateEdge(Edge L1, Edge L2) {
 	return false;
 }
 
+// determines if the edge in the argument (L1) is within the set of convex hull boundary edges
 bool checkConvexHull(Edge L1) {
 	// iterate through all line segments in the convex hull, then confirm if L1 is an edge of the convex hull (is part of the set ConvexHull)
 	for(Edge L2 : ConvexHull) {
-		if(duplicateEdge(L1, L2))	// if they are the same
-			return true;
+		if(duplicateEdge(L1, L2))	// if L1 and convex hull boundary edge L2, are the exact same
+			return true;			// L1 is in convex hull
 	} 
-
-	return false;
+	return false;					// L1 is not in convex hull
 }
 
 
@@ -197,10 +206,10 @@ void calcTriangles() {
 	}
 }
 
+// Step 1: calculates the number of edges based on the number 
 void calcTriEdges() {
-	// Step 2/3: iterate through all known edges, and for all edges that do not intersect with the set TriEdge, is added to that very same set. 
-	int numEdges = 0;
 	// Step 1: find all possible edges
+	int numEdges = 0;
 	for (int i = 0; i < POINT_COUNT; i++) {
 		for (int j = i + 1; j < POINT_COUNT; j++) {
 			// calculate the distance between the two points
@@ -225,6 +234,7 @@ void calcTriEdges() {
 	bool intersection;
 	TriEdge.clear();
 
+	// Step 2/3: iterate through all known edges, and for all edges that do not intersect with the set TriEdge, is added to that very same set. 
 	for (int i = 0; i < numEdges; i++) { // Not using for-each so we can keep track of iterations
 		Edge L1 = EdgeList[i];
 		intersection = false; // initially assume edge encounters no intersections
@@ -250,15 +260,17 @@ void calcTriEdges() {
 
 			float D = ((xb - xa) * (yd - yc)) - ((yb - ya) * (xd - xc));
 
-			// if parallel, we skip
+			// if true, then it is parallel, we skip
 			if (D == 0) continue;
 
 			float ta = (((xc - xa) * (yd - yc)) - ((yc - ya) * (xd - xc))) / D;
 			float tb = (xa - xc + (xb - xa) * ta) / (xd - xc);
 
 			if ((ta == 0 || ta == 1) && (tb == 0 || tb == 1)) {
+				// means the edges are intserected/connected by their endpoints
 			}
 			else if ((ta >= 0 && ta <= 1) && (tb >= 0 && tb <= 1)) {
+				// edges are intersected by some point that ISN'T their endpoints
 				intersection = true;
 				break;
 			}

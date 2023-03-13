@@ -79,33 +79,22 @@ struct Edge {
 };
 
 struct Triangle {
-	Point p1;
-	Point p2;
-	Point p3;
-	bool operator==(const Triangle& other) const { return (p1 == other.p1 && p2 == other.p2 && p3 == other.p3) || (p1 == other.p1 && p2 == other.p3 && p3 == other.p2) || (p1 == other.p2 && p2 == other.p1 && p3 == other.p3) || (p1 == other.p2 && p2 == other.p3 && p3 == other.p1) || (p1 == other.p3 && p2 == other.p1 && p3 == other.p2) || (p1 == other.p3 && p2 == other.p2 && p3 == other.p1); }
+	Edge e1, e2, e3;
+	bool operator==(const Triangle& other) const { return (e1 == other.e1 && e2 == other.e2 && e3 == other.e3) || (e1 == other.e2 && e2 == other.e3 && e3 == other.e1) || (e1 == other.e3 && e2 == other.e1 && e3 == other.e2); }
 	bool operator!=(const Triangle& other) const { return !(*this == other); }
-	bool operator<(const Triangle& other) const { return p1 < other.p1 || (p1 == other.p1 && p2 < other.p2) || (p1 == other.p1 && p2 == other.p2 && p3 < other.p3); }
-	bool operator>(const Triangle& other) const { return p1 > other.p1 || (p1 == other.p1 && p2 > other.p2) || (p1 == other.p1 && p2 == other.p2 && p3 > other.p3); }
-	bool intersects(const Triangle& other) const {
-		Edge e1 = { p1, p2 };
-		Edge e2 = { p2, p3 };
-		Edge e3 = { p3, p1 };
-		Edge e4 = { other.p1, other.p2 };
-		Edge e5 = { other.p2, other.p3 };
-		Edge e6 = { other.p3, other.p1 };
-		if (e1.intersects(e4) || e1.intersects(e5) || e1.intersects(e6) ||
-			e2.intersects(e4) || e2.intersects(e5) || e2.intersects(e6) ||
-			e3.intersects(e4) || e3.intersects(e5) || e3.intersects(e6)) {
-			return true;
-		}
-		return false;
+	bool operator<(const Triangle& other) const { return e1 < other.e1 || (e1 == other.e1 && e2 < other.e2) || (e1 == other.e1 && e2 == other.e2 && e3 < other.e3); }
+	bool operator>(const Triangle& other) const { return e1 > other.e1 || (e1 == other.e1 && e2 > other.e2) || (e1 == other.e1 && e2 == other.e2 && e3 > other.e3); }
+	bool intersects(Triangle& other) {
+		return e1.intersects(other.e1) || e1.intersects(other.e2) || e1.intersects(other.e3) ||
+			e2.intersects(other.e1) || e2.intersects(other.e2) || e2.intersects(other.e3) ||
+			e3.intersects(other.e1) || e3.intersects(other.e2) || e3.intersects(other.e3);
 	}
 };
 
 std::vector<Point> P(POINT_COUNT);
 std::vector<Edge> EdgeList(POINT_COUNT* (POINT_COUNT - 1) / 2);
 std::set<Edge> TriEdge;
-std::set<Triangle> Triangles;
+std::vector<Triangle> Triangles;
 
 // a) generate N random unique points on the plane
 void initPoints() {
@@ -265,25 +254,29 @@ void drawEdges() {
 // c) triangle polygon extaction - extract triangle polygons from the edges
 void extractTriangles() {
 	// create triangles from the TriEdge set
-	Triangles.clear();
-	for (const Edge e1 : TriEdge) {
-		for (const Edge e2 : TriEdge) {
-			if (e1 == e2) continue;
-			if (e1.p1 == e2.p1) {
-				Triangle t = { e1.p2, e1.p1, e2.p2 };
-				Triangles.insert(t);
+	for (Edge e1 : TriEdge) {
+		for (Edge e2 : TriEdge) {
+			if (e1.p1 == e2.p1 && e1.p2 == e2.p2) {
+				continue;
 			}
-			else if (e1.p1 == e2.p2) {
-				Triangle t = { e1.p2, e1.p1, e2.p1 };
-				Triangles.insert(t);
+			if (e1.p1 == e2.p2 && e1.p2 == e2.p1) {
+				continue;
 			}
-			else if (e1.p2 == e2.p1) {
-				Triangle t = { e1.p1, e1.p2, e2.p2 };
-				Triangles.insert(t);
+			if (e1.p1 == e2.p1 && e1.p2 != e2.p2) {
+				Triangle t = { e1, e2 };
+				Triangles.push_back(t);
 			}
-			else if (e1.p2 == e2.p2) {
-				Triangle t = { e1.p1, e1.p2, e2.p1 };
-				Triangles.insert(t);
+			if (e1.p1 == e2.p2 && e1.p2 != e2.p1) {
+				Triangle t = { e1, e2 };
+				Triangles.push_back(t);
+			}
+			if (e1.p2 == e2.p1 && e1.p1 != e2.p2) {
+				Triangle t = { e1, e2 };
+				Triangles.push_back(t);
+			}
+			if (e1.p2 == e2.p2 && e1.p1 != e2.p1) {
+				Triangle t = { e1, e2 };
+				Triangles.push_back(t);
 			}
 		}
 	}
@@ -300,9 +293,9 @@ void drawTriangles() {
 		float g = float(rand()) / RAND_MAX;
 		float b = float(rand()) / RAND_MAX;
 		glColor3f(r, g, b);
-		glVertex2i(t.p1.x, t.p1.y);
-		glVertex2i(t.p2.x, t.p2.y);
-		glVertex2i(t.p3.x, t.p3.y);
+		glVertex2i(t.e1.p1.x, t.e1.p1.y);
+		glVertex2i(t.e1.p2.x, t.e1.p2.y);
+		glVertex2i(t.e2.p2.x, t.e2.p2.y);
 	}
 	// c) count and print the number of triangles created
 	printf("Triangles: %i \n", Triangles.size());
